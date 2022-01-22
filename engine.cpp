@@ -2,113 +2,10 @@
 
 #include <bits/stdc++.h>
 
-#define U64 unsigned long long
-
-//*Macros for bit manipulation
-
 using namespace std;
 class BitBoard;
 
-enum
-{
-    WHITE,
-    BLACK
-};
-enum
-{
-    a8,
-    b8,
-    c8,
-    d8,
-    e8,
-    f8,
-    g8,
-    h8,
-    a7,
-    b7,
-    c7,
-    d7,
-    e7,
-    f7,
-    g7,
-    h7,
-    a6,
-    b6,
-    c6,
-    d6,
-    e6,
-    f6,
-    g6,
-    h6,
-    a5,
-    b5,
-    c5,
-    d5,
-    e5,
-    f5,
-    g5,
-    h5,
-    a4,
-    b4,
-    c4,
-    d4,
-    e4,
-    f4,
-    g4,
-    h4,
-    a3,
-    b3,
-    c3,
-    d3,
-    e3,
-    f3,
-    g3,
-    h3,
-    a2,
-    b2,
-    c2,
-    d2,
-    e2,
-    f2,
-    g2,
-    h2,
-    a1,
-    b1,
-    c1,
-    d1,
-    e1,
-    f1,
-    g1,
-    h1,
-};
-
-//*----------------------------------------helper functions--------------------------------------------
-
-char inline getFileOfSquareIndex(int index)
-{
-    return 'a' + index % 8;
-}
-
-int inline getRankOfSquareIndex(int index)
-{
-    return 8 - (index / 8);
-}
-
-int inline getIndexFromRankAndFile(int rank, char file)
-{
-    return (8 - rank) * 8 + (file - 'a');
-}
-
-// row and column numbers are 0 based
-int inline getIndexFromRowAndColumnNumbers(int row, int column)
-{
-    return row * 8 + column;
-}
-
-string inline getAlgebraicCoordinateFromIndex(int index)
-{
-    return getFileOfSquareIndex(index) + to_string(getRankOfSquareIndex(index));
-}
+#include "definitions.h"
 
 /*
     * BitBoard index :
@@ -134,6 +31,9 @@ string inline getAlgebraicCoordinateFromIndex(int index)
     *
 
 */
+
+//*helper functions
+#include "helperFunctions.h"
 
 class BitBoard
 {
@@ -188,6 +88,16 @@ public:
 
         if (getBitAt(index) == 1)
             toggleBitAt(index);
+    }
+
+    inline int countSetBits() const
+    {
+        return countSetBitsOfU64(this->value);
+    }
+
+    inline int getFirstLeastSignificantBitIndexFromRight() const
+    {
+        return getFirstLeastSignificantBitIndexFromRightU64(this->value);
     }
 
     void inline print() const
@@ -252,6 +162,8 @@ public:
     }
 
     //*-----------------------------------------------for testing----------------------------------------------------
+    friend U64 findMagicNumber(int squareIndex, bool bishop);
+
     //*-----------------------------------------------for testing----------------------------------------------------
 };
 
@@ -699,6 +611,34 @@ BitBoard generateRookAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
     return result;
 }
 
+/*
+TODO: Dunno much about this function for now :) , research later
+*/
+BitBoard setOccupancy(int index, BitBoard attackMask)
+{
+    // occupancy mask
+    BitBoard occupancy;
+
+    int numberOfSetBits = attackMask.countSetBits();
+
+    // loop over the range of set bits of attack masks
+    for (int count = 0; count < numberOfSetBits; count++)
+    {
+        // get the index of the Least significant set bit within our attack mask
+        int squareIndex = attackMask.getFirstLeastSignificantBitIndexFromRight();
+
+        // pop the Least significant set bit
+        attackMask.unsetBitAt(squareIndex);
+
+        // make sure occupancy is on board
+        if (index & (1 << count)) // TODO: Dunno
+            // populate occupancy mask
+            occupancy.setBitAt(squareIndex);
+    }
+
+    return occupancy;
+}
+
 void printPawnAttackTables()
 {
     cout << "\nwhite pawn attacks : \n";
@@ -836,6 +776,110 @@ void printKingAttacktable(const vector<BitBoard> &kingAttackTable)
     cout << " } \n";
 }
 
+//*TODO: Dunno theory behind it
+//*find appropriate magic number
+/*
+    bishop = true ,means magicNumber for bishop on squareIndex
+            false, means magicNumber for rook on squareIndex
+*/
+U64 findMagicNumber(int squareIndex, bool bishop)
+{
+
+    // initialize occupancies
+    BitBoard occupancies[4096]; // Dunno why this size
+
+    // initialize attack tables
+    BitBoard attacks[4096];
+
+    // initialize used attacks
+    BitBoard usedAttacks[4096];
+
+    // initialize attack mask for current piece
+    BitBoard currentPieceAttackMask = bishop ? BISHOP_ATTACK_TABLE[squareIndex] : ROOK_ATTACK_TABLE[squareIndex];
+
+    // count set bits for attack mask of current piece at given squareIndex
+    int countRelevantBits = currentPieceAttackMask.countSetBits();
+
+    // initialize occupancy index
+    int occupancyIndex = 1 << countRelevantBits;
+
+    // loop over occupancy indices
+    for (int index = 0; index < occupancyIndex; index++)
+    {
+        // initialize occupancies
+        occupancies[index] = setOccupancy(index, currentPieceAttackMask);
+
+        // initialize attacks
+        attacks[index] = bishop ? generateBishopAttacksOnTheFly(squareIndex, occupancies[index]) : generateRookAttacksOnTheFly(squareIndex, occupancies[index]);
+    }
+
+    // test magic numbers loop
+    for (int randomCount = 0; randomCount < 100000000; randomCount++)
+    {
+        // generate magic number candidate
+        U64 magicNum = generatePotentialMagicNumber();
+
+        // skip inappropriate magic numbers
+        // 0xFF00000000000000 = 1111111100000000000000000000000000000000000000000000000000000000, i.e it has all higher 8 bits 1
+        if (countSetBitsOfU64((currentPieceAttackMask.value * magicNum) & 0xFF00000000000000) < 6)
+            continue;
+
+        // initialize usedAttacks array
+        // for (int i = 0; i < 4096; i++)
+        // usedAttacks[i] = 0ULL;
+        memset(usedAttacks, 0ULL, sizeof(usedAttacks));
+
+        // initialize index and fail flag
+        int index = 0;
+        bool fail = false;
+
+        // test magic index
+        while (!fail && index < occupancyIndex)
+        {
+            // initialize magic index
+            int magicIndex = (int)((occupancies[index].value * magicNum) >> (64 - countRelevantBits));
+
+            // if magic index works
+            if (usedAttacks[magicIndex].value == 0ULL)
+                // initialize usedAttacjs
+                usedAttacks[magicIndex] = attacks[index];
+            else if (usedAttacks[magicIndex].value != attacks[index].value)
+                fail = true;
+
+            index++;
+        }
+
+        // if magic number works
+        if (!fail)
+        {
+            return magicNum;
+        }
+    }
+
+    // if magic number doesn't work
+    cout << "\n\n\n\n\n\n\n\n\n\nmagic number doesnt work !!!!!!!!!!!!\n\n\n\n\n\n\n\n\n\n";
+    return -1;
+}
+
+void initializeMagicNumbers()
+{
+
+    cout << "\n\nRook Magic numbers : ";
+    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+    {
+        // print rook magic numbers
+        // cout << findMagicNumber(squareIndex, false) << "ULL, ";
+        printf(" 0x%llxULL,\n", findMagicNumber(squareIndex, false));
+    }
+
+    cout << "\n\nBishop Magic numbers : ";
+    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+    {
+        // cout << findMagicNumber(squareIndex, true) << "ULL, ";
+        printf(" 0x%llxULL,\n", findMagicNumber(squareIndex, true));
+    }
+}
+
 // void initializeLeaperPieceAttackTables()
 // {
 //     initializePawnAttackTables();
@@ -845,18 +889,7 @@ int main()
 {
     cout << "\n\nHello earth\n\n\n";
 
-    BitBoard blocker;
-    blocker.setBitAt(b4);
-    blocker.setBitAt(d2);
-    blocker.setBitAt(d5);
-    blocker.setBitAt(a8);
-    blocker.setBitAt(g4);
+    // initializeMagicNumbers();
 
-    cout << "\nblocker bitboard : ";
-    blocker.printWithBoxes();
-
-    cout << "\nRook attacks : ";
-    generateRookAttacksOnTheFly(d4, blocker).printWithBoxes();
-
-    return 0;
+    cout << testMagicNumberMatch(BISHOP_MAGIC_NUMBER, ROOK_MAGIC_NUMBER);
 }
