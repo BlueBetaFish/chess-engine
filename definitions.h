@@ -3,12 +3,12 @@
 
 #define U64 unsigned long long
 
-enum
+enum COLOR
 {
     WHITE,
     BLACK
 };
-enum
+enum SQUARE_INDEX
 {
     a8,
     b8,
@@ -75,3 +75,19 @@ enum
     g1,
     h1,
 };
+
+// //*NOT WORKING :)
+// vector<string>
+//     UNICODE_PIECE = {
+//         "♙",
+//         "♘",
+//         "♗",
+//         "♖",
+//         "♕",
+//         "♔",
+//         "♟︎",
+//         "♞",
+//         "♝",
+//         "♜",
+//         "♛",
+//         "♚"};

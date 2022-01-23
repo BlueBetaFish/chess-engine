@@ -1,1 +1,3 @@
-en
+while (k < fenSize && fen[k] != ' ')
+            // {
+            // }

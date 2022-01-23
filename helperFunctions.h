@@ -20,6 +20,7 @@ int inline getRankOfSquareIndex(int index)
     return 8 - (index / 8);
 }
 
+//*rank in [1,8] and file in ['a', 'h']
 int inline getIndexFromRankAndFile(int rank, char file)
 {
     return (8 - rank) * 8 + (file - 'a');
