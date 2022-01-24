@@ -6,36 +6,7 @@
 #include "definitions.h"
 #include "BitBoard.h"
 
-class BitBoard;
-
 //*----------------------------------------helper functions--------------------------------------------
-
-char inline getFileOfSquareIndex(int index)
-{
-    return 'a' + index % 8;
-}
-
-int inline getRankOfSquareIndex(int index)
-{
-    return 8 - (index / 8);
-}
-
-//*rank in [1,8] and file in ['a', 'h']
-int inline getIndexFromRankAndFile(int rank, char file)
-{
-    return (8 - rank) * 8 + (file - 'a');
-}
-
-// row and column numbers are 0 based
-int inline getIndexFromRowAndColumnNumbers(int row, int column)
-{
-    return row * 8 + column;
-}
-
-std::string inline getAlgebraicCoordinateFromIndex(int index)
-{
-    return getFileOfSquareIndex(index) + std::to_string(getRankOfSquareIndex(index));
-}
 
 int getOppositeColor(int color)
 {
@@ -87,42 +58,42 @@ BitBoard maskKnightAttacks(int squareIndex)
 
     //*2 squares up, 1 square right , targetIndex = squareIndex - 15
     targetIndex = squareIndex - 15;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*2 squares up, 1 square left , targetIndex = squareIndex - 17
     targetIndex = squareIndex - 17;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*2 squares down, 1 square right , targetIndex = squareIndex + 17
     targetIndex = squareIndex + 17;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*2 squares down, 1 square left , targetIndex = squareIndex + 15
     targetIndex = squareIndex + 15;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*2 squares right, 1 square up , targetIndex = squareIndex - 6
     targetIndex = squareIndex - 6;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares right, 1 square down , targetIndex = squareIndex + 10
     targetIndex = squareIndex + 10;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares left, 1 square up , targetIndex = squareIndex - 10
     targetIndex = squareIndex - 10;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares left, 1 square down , targetIndex = squareIndex + 6
     targetIndex = squareIndex + 6;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     return result;
@@ -147,32 +118,32 @@ BitBoard maskKingAttacks(int squareIndex)
 
     //*1 square right
     targetIndex = squareIndex + 1;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*1 square left
     targetIndex = squareIndex - 1;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*1 square up, 1 square right
     targetIndex = squareIndex - 7;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square down, 1 square right
     targetIndex = squareIndex + 9;
-    if (getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square up, 1 square left :
     targetIndex = squareIndex - 9;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square down, 1 square left
     targetIndex = squareIndex + 7;
-    if (getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     return result;
@@ -186,8 +157,8 @@ BitBoard maskBishopAttacks(int squareIndex)
 
     int targetIndex = -1;
 
-    int currentRank = getRankOfSquareIndex(squareIndex);
-    char currentFile = getFileOfSquareIndex(squareIndex);
+    int currentRank = BitBoard::getRankOfSquareIndex(squareIndex);
+    char currentFile = BitBoard::getFileOfSquareIndex(squareIndex);
 
     int rank = 0;
     char file = 0;
@@ -195,28 +166,28 @@ BitBoard maskBishopAttacks(int squareIndex)
     //*upper right diagonal
     for (rank = currentRank + 1, file = currentFile + 1; rank <= 7 && file <= 'g'; rank++, file++)
     {
-        targetIndex = getIndexFromRankAndFile(rank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, file);
         result.setBitAt(targetIndex);
     }
 
     //*lower right diagonal
     for (rank = currentRank - 1, file = currentFile + 1; rank >= 2 && file <= 'g'; rank--, file++)
     {
-        targetIndex = getIndexFromRankAndFile(rank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, file);
         result.setBitAt(targetIndex);
     }
 
     //*upper left diagonal
     for (rank = currentRank + 1, file = currentFile - 1; rank <= 7 && file >= 'b'; rank++, file--)
     {
-        targetIndex = getIndexFromRankAndFile(rank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, file);
         result.setBitAt(targetIndex);
     }
 
     //*lower left diagonal
     for (rank = currentRank - 1, file = currentFile - 1; rank >= 2 && file >= 'b'; rank--, file--)
     {
-        targetIndex = getIndexFromRankAndFile(rank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, file);
         result.setBitAt(targetIndex);
     }
 
@@ -231,8 +202,8 @@ BitBoard maskRookAttacks(int squareIndex)
 
     int targetIndex = -1;
 
-    int currentRank = getRankOfSquareIndex(squareIndex);
-    char currentFile = getFileOfSquareIndex(squareIndex);
+    int currentRank = BitBoard::getRankOfSquareIndex(squareIndex);
+    char currentFile = BitBoard::getFileOfSquareIndex(squareIndex);
 
     // cout << "\ncurrentRank = " << currentRank;
 
@@ -242,349 +213,105 @@ BitBoard maskRookAttacks(int squareIndex)
     //*upper file
     for (rank = currentRank + 1; rank <= 7; rank++)
     {
-        targetIndex = getIndexFromRankAndFile(rank, currentFile);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, currentFile);
         result.setBitAt(targetIndex);
     }
 
     //*lower file
     for (rank = currentRank - 1; rank >= 2; rank--)
     {
-        targetIndex = getIndexFromRankAndFile(rank, currentFile);
+        targetIndex = BitBoard::getIndexFromRankAndFile(rank, currentFile);
         result.setBitAt(targetIndex);
     }
 
     //*left rank
     for (file = currentFile - 1; file >= 'b'; file--)
     {
-        targetIndex = getIndexFromRankAndFile(currentRank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(currentRank, file);
         result.setBitAt(targetIndex);
     }
 
     //*right rank
     for (file = currentFile + 1; file <= 'g'; file++)
     {
-        targetIndex = getIndexFromRankAndFile(currentRank, file);
+        targetIndex = BitBoard::getIndexFromRankAndFile(currentRank, file);
         result.setBitAt(targetIndex);
     }
 
     return result;
 }
 
-/*
-    generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
-
-    example :
-blocker bitboard :
-+---+---+---+---+---+---+---+---+
-| 1 |   |   |   |   |   |   |   |   8
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   | 1 |   |   7
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   6
-+---+---+---+---+---+---+---+---+
-|   |   | 1 |   |   |   |   |   |   5
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   4
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   3
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   2
-+---+---+---+---+---+---+---+---+
-| 1 |   |   |   |   |   |   | 1 |   1
-+---+---+---+---+---+---+---+---+---+---+
-  a   b   c   d   e   f   g   h   --------> File
-
-    Decimal value : 9295429630959828993
-
-bishop attacks :
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   8
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   | 1 |   |   7
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   | 1 |   |   |   6
-+---+---+---+---+---+---+---+---+
-|   |   | 1 |   | 1 |   |   |   |   5
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   4
-+---+---+---+---+---+---+---+---+
-|   |   | 1 |   | 1 |   |   |   |   3
-+---+---+---+---+---+---+---+---+
-|   | 1 |   |   |   | 1 |   |   |   2
-+---+---+---+---+---+---+---+---+
-| 1 |   |   |   |   |   | 1 |   |   1
-+---+---+---+---+---+---+---+---+---+---+
-  a   b   c   d   e   f   g   h   --------> File
-
-    Decimal value : 4693335752243691520
-*/
-//*including the edge of the board and occupancy of blocker pieces
-BitBoard generateBishopAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
-{
-    BitBoard result;
-    result.checkSquareIndexValidity(squareIndex);
-
-    int targetIndex = -1;
-
-    int currentRank = getRankOfSquareIndex(squareIndex);
-    char currentFile = getFileOfSquareIndex(squareIndex);
-
-    int rank = 0;
-    char file = 0;
-
-    //*upper right diagonal
-    for (rank = currentRank + 1, file = currentFile + 1; rank <= 8 && file <= 'h'; rank++, file++)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*lower right diagonal
-    for (rank = currentRank - 1, file = currentFile + 1; rank >= 1 && file <= 'h'; rank--, file++)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*upper left diagonal
-    for (rank = currentRank + 1, file = currentFile - 1; rank <= 8 && file >= 'a'; rank++, file--)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*lower left diagonal
-    for (rank = currentRank - 1, file = currentFile - 1; rank >= 1 && file >= 'a'; rank--, file--)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    return result;
-}
-
-/*
-    generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
-
-    example :
-
-
-blocker bitboard :
-+---+---+---+---+---+---+---+---+
-| 1 |   |   |   |   |   |   |   |   8
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   7
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   6
-+---+---+---+---+---+---+---+---+
-|   |   |   | 1 |   |   |   |   |   5
-+---+---+---+---+---+---+---+---+
-|   | 1 |   |   |   |   | 1 |   |   4
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   3
-+---+---+---+---+---+---+---+---+
-|   |   |   | 1 |   |   |   |   |   2
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   1
-+---+---+---+---+---+---+---+---+---+---+
-  a   b   c   d   e   f   g   h   --------> File
-
-    Decimal value : 2252083415744513
-
-
-Rook attacks :
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   8
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   7
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   6
-+---+---+---+---+---+---+---+---+
-|   |   |   | 1 |   |   |   |   |   5
-+---+---+---+---+---+---+---+---+
-|   | 1 | 1 |   | 1 | 1 | 1 |   |   4
-+---+---+---+---+---+---+---+---+
-|   |   |   | 1 |   |   |   |   |   3
-+---+---+---+---+---+---+---+---+
-|   |   |   | 1 |   |   |   |   |   2
-+---+---+---+---+---+---+---+---+
-|   |   |   |   |   |   |   |   |   1
-+---+---+---+---+---+---+---+---+---+---+
-  a   b   c   d   e   f   g   h   --------> File
-
-    Decimal value : 2261102847066112
-*/
-
-//*Exludes the edge of the board
-BitBoard generateRookAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
-{
-    BitBoard result;
-    result.checkSquareIndexValidity(squareIndex);
-
-    int targetIndex = -1;
-
-    int currentRank = getRankOfSquareIndex(squareIndex);
-    char currentFile = getFileOfSquareIndex(squareIndex);
-
-    // cout << "\ncurrentRank = " << currentRank;
-
-    int rank = currentRank;
-    char file = currentFile;
-
-    //*upper file
-    for (rank = currentRank + 1; rank <= 8; rank++)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, currentFile);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*lower file
-    for (rank = currentRank - 1; rank >= 1; rank--)
-    {
-        targetIndex = getIndexFromRankAndFile(rank, currentFile);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*left rank
-    for (file = currentFile - 1; file >= 'a'; file--)
-    {
-        targetIndex = getIndexFromRankAndFile(currentRank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    //*right rank
-    for (file = currentFile + 1; file <= 'h'; file++)
-    {
-        targetIndex = getIndexFromRankAndFile(currentRank, file);
-        result.setBitAt(targetIndex);
-
-        if (blockers.getBitAt(targetIndex) == 1)
-            break;
-    }
-
-    return result;
-}
-
-/*
-TODO: Dunno much about this function for now :) , research later
-*/
-BitBoard setOccupancy(int index, BitBoard attackMask)
-{
-    // occupancy mask
-    BitBoard occupancy;
-
-    int numberOfSetBits = attackMask.countSetBits();
-
-    // loop over the range of set bits of attack masks
-    for (int count = 0; count < numberOfSetBits; count++)
-    {
-        // get the index of the Least significant set bit within our attack mask
-        int squareIndex = attackMask.getFirstLeastSignificantBitIndexFromRight();
-
-        // pop the Least significant set bit
-        attackMask.unsetBitAt(squareIndex);
-
-        // make sure occupancy is on board
-        if (index & (1 << count)) // TODO: Dunno
-            // populate occupancy mask
-            occupancy.setBitAt(squareIndex);
-    }
-
-    return occupancy;
-}
-
-void printPawnAttackTables()
-{
-    cout << "\nwhite pawn attacks : \n";
-
-    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    {
-        cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
-        PAWN_ATTACK_TABLE[WHITE][squareIndex].print();
-    }
-
-    cout << "\nblack pawn attacks : \n";
-
-    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    {
-        cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
-        PAWN_ATTACK_TABLE[BLACK][squareIndex].print();
-    }
-
-    // cout << "{ ";
-
-    // cout << "{ ";
-    // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    // {
-
-    //     cout << maskPawnAttacks(WHITE, squareIndex).getDecimalValue() << "ULL";
-    //     if (squareIndex != 63)
-    //         cout << ", ";
-    // }
-    // cout << " }, \n";
-
-    // cout << "{ ";
-    // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    // {
-
-    //     cout << maskPawnAttacks(BLACK, squareIndex).getDecimalValue() << "ULL";
-    //     if (squareIndex != 63)
-    //         cout << ", ";
-    // }
-    // cout << " } \n";
-
-    // cout << "} ";
-}
-
-void printKngihtAttackTable()
-{
-
-    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    {
-        cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
-        KNIGHT_ATTACK_TABLE[squareIndex].print();
-    }
-
-    // cout << "{ ";
-    // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    // {
-
-    //     cout << maskKnightAttacks(squareIndex).getDecimalValue() << "ULL";
-    //     if (squareIndex != 63)
-    //         cout << ", ";
-    // }
-    // cout << " } \n";
-}
-
-// void initializePawnAttackTables()
+// void printPawnAttackTables()
 // {
+//     cout << "\nwhite pawn attacks : \n";
+
 //     for (int squareIndex = 0; squareIndex < 64; squareIndex++)
 //     {
-//         pawnAttacks[WHITE][squareIndex] = maskPawnAttacks(WHITE, squareIndex);
-//         pawnAttacks[BLACK][squareIndex] = maskPawnAttacks(BLACK, squareIndex);
+//         cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
+//         BitBoard::PAWN_ATTACK_TABLE[WHITE][squareIndex].print();
 //     }
+
+//     cout << "\nblack pawn attacks : \n";
+
+//     for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+//     {
+//         cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
+//         BitBoard::PAWN_ATTACK_TABLE[BLACK][squareIndex].print();
+//     }
+
+//     // cout << "{ ";
+
+//     // cout << "{ ";
+//     // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+//     // {
+
+//     //     cout << maskPawnAttacks(WHITE, squareIndex).getDecimalValue() << "ULL";
+//     //     if (squareIndex != 63)
+//     //         cout << ", ";
+//     // }
+//     // cout << " }, \n";
+
+//     // cout << "{ ";
+//     // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+//     // {
+
+//     //     cout << maskPawnAttacks(BLACK, squareIndex).getDecimalValue() << "ULL";
+//     //     if (squareIndex != 63)
+//     //         cout << ", ";
+//     // }
+//     // cout << " } \n";
+
+//     // cout << "} ";
 // }
+
+// void printKngihtAttackTable()
+// {
+
+//     for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+//     {
+//         cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
+//         KNIGHT_ATTACK_TABLE[squareIndex].print();
+//     }
+
+//     // cout << "{ ";
+//     // for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+//     // {
+
+//     //     cout << maskKnightAttacks(squareIndex).getDecimalValue() << "ULL";
+//     //     if (squareIndex != 63)
+//     //         cout << ", ";
+//     // }
+//     // cout << " } \n";
+// }
+
+// // void initializePawnAttackTables()
+// // {
+// //     for (int squareIndex = 0; squareIndex < 64; squareIndex++)
+// //     {
+// //         pawnAttacks[WHITE][squareIndex] = maskPawnAttacks(WHITE, squareIndex);
+// //         pawnAttacks[BLACK][squareIndex] = maskPawnAttacks(BLACK, squareIndex);
+// //     }
+// // }
 
 vector<BitBoard> getKnightAttackTable()
 {
@@ -636,7 +363,7 @@ void printKingAttacktable(const vector<BitBoard> &kingAttackTable)
 {
     for (int squareIndex = 0; squareIndex < 64; squareIndex++)
     {
-        cout << "\nfor square : " << getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
+        cout << "\nfor square : " << BitBoard::getAlgebraicCoordinateFromIndex(squareIndex) << " : \n";
         kingAttackTable[squareIndex].print();
     }
 
@@ -745,7 +472,7 @@ U64 findMagicNumber(int squareIndex, bool bishop)
     BitBoard usedAttacks[4096];
 
     // initialize attack mask for current piece
-    BitBoard currentPieceAttackMask = bishop ? BISHOP_ATTACK_MASK[squareIndex] : ROOK_ATTACK_MASK[squareIndex];
+    BitBoard currentPieceAttackMask = bishop ? BitBoard::BISHOP_ATTACK_MASK[squareIndex] : BitBoard::ROOK_ATTACK_MASK[squareIndex];
 
     // count set bits for attack mask of current piece at given squareIndex
     int countRelevantBits = currentPieceAttackMask.countSetBits();
@@ -757,10 +484,10 @@ U64 findMagicNumber(int squareIndex, bool bishop)
     for (int index = 0; index < occupancyIndex; index++)
     {
         // initialize occupancies
-        occupancies[index] = setOccupancy(index, currentPieceAttackMask);
+        occupancies[index] = BitBoard::setOccupancy(index, currentPieceAttackMask);
 
         // initialize attacks
-        attacks[index] = bishop ? generateBishopAttacksOnTheFly(squareIndex, occupancies[index]) : generateRookAttacksOnTheFly(squareIndex, occupancies[index]);
+        attacks[index] = bishop ? BitBoard::generateBishopAttacksOnTheFly(squareIndex, occupancies[index]) : BitBoard::generateRookAttacksOnTheFly(squareIndex, occupancies[index]);
     }
 
     // test magic numbers loop

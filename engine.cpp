@@ -3,93 +3,14 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-class BitBoard;
 
 #include "definitions.h"
 
 #include "BitBoard.h"
 #include "PieceClass.h"
 
-#include "tables.h"
-
 //*helper functions
 #include "helperFunctions.h"
-
-//*Constants
-
-//*_____________________________ATTACK TABLES____________________________________________________________________
-
-void initializeSliderPieceAttackTables()
-{
-    for (int squareIndex = 0; squareIndex < 64; squareIndex++)
-    {
-        //*for bishop_____________________________________________________________________________
-        int relevantBitCount = BISHOP_ATTACK_MASK_SET_BIT_COUNT[squareIndex];
-        // initialize occupancyIndex
-        int occupancyIndex = (1 << relevantBitCount);
-
-        for (int index = 0; index < occupancyIndex; index++)
-        {
-            // initilalize current occupancy variation
-            BitBoard occupancy = setOccupancy(index, BISHOP_ATTACK_MASK[squareIndex]);
-
-            // initialize magic index
-            U64 magicIndex = (occupancy.getDecimalValue() * BISHOP_MAGIC_NUMBER[squareIndex]) >> (64 - relevantBitCount);
-
-            // initialize bishop attacks
-            BISHOP_ATTACK_TABLE[squareIndex][magicIndex] = generateBishopAttacksOnTheFly(squareIndex, occupancy);
-        }
-
-        //*for rook_____________________________________________________________________________
-        relevantBitCount = ROOK_ATTACK_MASK_SET_BIT_COUNT[squareIndex];
-        // initialize occupancyIndex
-        occupancyIndex = (1 << relevantBitCount);
-
-        for (int index = 0; index < occupancyIndex; index++)
-        {
-            // initilalize current occupancy variation
-            BitBoard occupancy = setOccupancy(index, ROOK_ATTACK_MASK[squareIndex]);
-
-            // initialize magic index
-            U64 magicIndex = (occupancy.getDecimalValue() * ROOK_MAGIC_NUMBER[squareIndex]) >> (64 - relevantBitCount);
-
-            // initialize bishop attacks
-            ROOK_ATTACK_TABLE[squareIndex][magicIndex] = generateRookAttacksOnTheFly(squareIndex, occupancy);
-        }
-    }
-}
-
-//*Finds bishop attacks assuming current board occupancy as "blockers"
-BitBoard inline getBishopAttacks(int squareIndex, const BitBoard &blockers)
-{
-    U64 occupancyValue = blockers.getDecimalValue();
-
-    occupancyValue &= BISHOP_ATTACK_MASK[squareIndex].getDecimalValue();
-    occupancyValue *= BISHOP_MAGIC_NUMBER[squareIndex];
-    occupancyValue >>= (64 - BISHOP_ATTACK_MASK_SET_BIT_COUNT[squareIndex]);
-
-    U64 index = occupancyValue;
-    return BISHOP_ATTACK_TABLE[squareIndex][index];
-}
-
-//*Finds rook attacks assuming current board occupancy as "blockers"
-BitBoard inline getRookAttacks(int squareIndex, const BitBoard &blockers)
-{
-    U64 occupancyValue = blockers.getDecimalValue();
-
-    occupancyValue &= ROOK_ATTACK_MASK[squareIndex].getDecimalValue();
-    occupancyValue *= ROOK_MAGIC_NUMBER[squareIndex];
-    occupancyValue >>= (64 - ROOK_ATTACK_MASK_SET_BIT_COUNT[squareIndex]);
-
-    U64 index = occupancyValue;
-    return ROOK_ATTACK_TABLE[squareIndex][index];
-}
-
-BitBoard inline getQueenAttacks(int squareIndex, const BitBoard &blockers)
-{
-    U64 res = getBishopAttacks(squareIndex, blockers).getDecimalValue() | getRookAttacks(squareIndex, blockers).getDecimalValue();
-    return BitBoard(res);
-}
 
 class Board
 {
@@ -188,7 +109,7 @@ public:
 
         //*print other board states
         cout << "\n\nCurrentPlayer = " << (this->currentPlayer == WHITE ? "WHITE" : "BLACK") << endl;
-        cout << "EnPassant square = " << this->enPassantSquareIndex << (this->enPassantSquareIndex != -1 ? " (" + getAlgebraicCoordinateFromIndex(this->enPassantSquareIndex) + ")" : "") << endl;
+        cout << "EnPassant square = " << this->enPassantSquareIndex << (this->enPassantSquareIndex != -1 ? " (" + BitBoard::getAlgebraicCoordinateFromIndex(this->enPassantSquareIndex) + ")" : "") << endl;
 
         string castlingRightsTemp = string((this->castlingRights[0] ? "K" : "-")) + (this->castlingRights[1] ? "Q" : "-") + (this->castlingRights[2] ? "k" : "-") + (this->castlingRights[3] ? "q" : "-");
         cout << "Castling Rights = " << castlingRightsTemp << endl;
@@ -386,7 +307,9 @@ public:
 //*must be called at begining
 void initializeTables()
 {
-    initializeSliderPieceAttackTables();
+
+    // initializeSliderPieceAttackTables();
+    BitBoard tempBitBoardToInitializeLookupTables;
 }
 
 int main()
@@ -397,28 +320,32 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    // BitBoard blockers;
-    // blockers.setBitAt(a1);
-    // blockers.setBitAt(c3);
-    // blockers.setBitAt(d6);
-    // blockers.setBitAt(d8);
-    // blockers.setBitAt(g2);
-    // blockers.setBitAt(g7);
-    // blockers.setBitAt(h1);
-    // blockers.setBitAt(h2);
-    // blockers.setBitAt(f6);
-    // blockers.setBitAt(d2);
-    // blockers.setBitAt(d8);
-    // blockers.setBitAt(b4);
-    // blockers.setBitAt(a4);
-    // blockers.setBitAt(d3);
-    // blockers.setBitAt(a7);
+    BitBoard blockers;
+    blockers.setBitAt(a1);
+    blockers.setBitAt(c3);
+    blockers.setBitAt(d6);
+    blockers.setBitAt(d8);
+    blockers.setBitAt(g2);
+    blockers.setBitAt(g7);
+    blockers.setBitAt(h1);
+    blockers.setBitAt(h2);
+    blockers.setBitAt(f6);
+    blockers.setBitAt(d2);
+    blockers.setBitAt(d8);
+    blockers.setBitAt(b4);
+    blockers.setBitAt(a4);
+    blockers.setBitAt(d3);
+    blockers.setBitAt(a7);
 
-    // blockers.print();
+    blockers.print();
 
-    // // getBishopAttacks(d4, blockers).print();
-    // // getRookAttacks(d4, blockers).print();
-    // getQueenAttacks(d4, blockers).print();
+    // int squareIndex = d4;
+    // cout << "\nBishop moves : \n";
+    // BitBoard::getBishopAttacks(squareIndex, blockers).print();
+    // cout << "\nRook moves : \n";
+    // BitBoard::getRookAttacks(squareIndex, blockers).print();
+    // cout << "\nqueen moves : \n";
+    // BitBoard::getQueenAttacks(squareIndex, blockers).print();
 
     Board b;
 
