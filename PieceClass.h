@@ -115,6 +115,64 @@ public:
             return -1;
         }
     }
+
+    static int inline colorOfGivenPiece(int pieceValue)
+    {
+        switch (pieceValue)
+        {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return WHITE;
+
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+            return BLACK;
+
+        case 12: // empty piece
+            return NO_COLOR;
+
+        //*invalid
+        default:
+            return -1;
+        }
+    }
+
+    static int inline colorOfGivenPiece(char pieceASCIICode)
+    {
+        switch (pieceASCIICode)
+        {
+        case 'P':
+        case 'N':
+        case 'B':
+        case 'R':
+        case 'Q':
+        case 'K':
+            return WHITE;
+
+        case 'p':
+        case 'n':
+        case 'b':
+        case 'r':
+        case 'q':
+        case 'k':
+            return BLACK;
+
+        case '.':
+            return NO_COLOR;
+
+        //*invalid
+        default:
+            return -1;
+        }
+    }
 };
 
 int Piece::whitePawn = P;

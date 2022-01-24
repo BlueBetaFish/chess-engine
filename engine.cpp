@@ -120,7 +120,7 @@ public:
     }
 
     // get the piece at given square
-    int getPieceAtSquare(int squareIndex)
+    int inline getPieceAtSquare(int squareIndex)
     {
         for (int piece = P; piece <= k; piece++)
         {
@@ -128,6 +128,33 @@ public:
                 return piece;
         }
         return EMPTY_PIECE;
+    }
+
+    BitBoard inline getWhiteOccupancyBitBoard()
+    {
+        U64 res = 0;
+        for (int piece = Piece::whitePawn; piece <= Piece::whiteKing; piece++)
+            res |= this->pieceBitBoards[piece].getDecimalValue();
+
+        return BitBoard(res);
+    }
+
+    BitBoard inline getBlackOccupancyBitBoard()
+    {
+        U64 res = 0;
+        for (int piece = Piece::blackPawn; piece <= Piece::blackKing; piece++)
+            res |= this->pieceBitBoards[piece].getDecimalValue();
+
+        return BitBoard(res);
+    }
+
+    BitBoard inline getAllOccupancyBitBoard()
+    {
+        U64 res = 0;
+        for (int piece = Piece::whitePawn; piece <= Piece::blackKing; piece++)
+            res |= this->pieceBitBoards[piece].getDecimalValue();
+
+        return BitBoard(res);
     }
 
     void inline print(bool printPieceBitBoards = false)
@@ -370,33 +397,42 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    BitBoard blockers;
-    blockers.setBitAt(a1);
-    blockers.setBitAt(c3);
-    blockers.setBitAt(d6);
-    blockers.setBitAt(d8);
-    blockers.setBitAt(g2);
-    blockers.setBitAt(g7);
-    blockers.setBitAt(h1);
-    blockers.setBitAt(h2);
-    blockers.setBitAt(f6);
-    blockers.setBitAt(d2);
-    blockers.setBitAt(d8);
-    blockers.setBitAt(b4);
-    blockers.setBitAt(a4);
-    blockers.setBitAt(d3);
-    blockers.setBitAt(a7);
+    // BitBoard blockers;
+    // blockers.setBitAt(a1);
+    // blockers.setBitAt(c3);
+    // blockers.setBitAt(d6);
+    // blockers.setBitAt(d8);
+    // blockers.setBitAt(g2);
+    // blockers.setBitAt(g7);
+    // blockers.setBitAt(h1);
+    // blockers.setBitAt(h2);
+    // blockers.setBitAt(f6);
+    // blockers.setBitAt(d2);
+    // blockers.setBitAt(d8);
+    // blockers.setBitAt(b4);
+    // blockers.setBitAt(a4);
+    // blockers.setBitAt(d3);
+    // blockers.setBitAt(a7);
 
-    blockers.print();
+    // blockers.print();
 
-    // getBishopAttacks(d4, blockers).print();
-    // getRookAttacks(d4, blockers).print();
-    getQueenAttacks(d4, blockers).print();
+    // // getBishopAttacks(d4, blockers).print();
+    // // getRookAttacks(d4, blockers).print();
+    // getQueenAttacks(d4, blockers).print();
 
-    // Board b;
+    Board b;
 
-    // b.initializeFromFenString("rn2kbnr/ppp1pppp/3q4/3p4/3P2b1/3Q1N1P/PPP1PPP1/RNB1KB1R b Kq - 0 1");
-    // b.print();
+    b.initializeFromFenString("rn2kbnr/ppp1pppp/3q4/3p4/3P2b1/3Q1N1P/PPP1PPP1/RNB1KB1R b Kq - 0 1");
+    b.print();
+
+    // cout << "\n\nwhite occupancy :\n";
+    // b.getWhiteOccupancyBitBoard().print();
+
+    // cout << "\n\nBlack occupancy :\n";
+    // b.getBlackOccupancyBitBoard().print();
+
+    // cout << "\n\nAll occupancy :\n";
+    // b.getAllOccupancyBitBoard().print();
 
     return 0;
 }

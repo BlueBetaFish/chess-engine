@@ -6,7 +6,8 @@
 enum COLOR
 {
     WHITE,
-    BLACK
+    BLACK,
+    NO_COLOR
 };
 enum SQUARE_INDEX
 {

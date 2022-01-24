@@ -37,6 +37,16 @@ std::string inline getAlgebraicCoordinateFromIndex(int index)
     return getFileOfSquareIndex(index) + std::to_string(getRankOfSquareIndex(index));
 }
 
+int getOppositeColor(int color)
+{
+    if (color == WHITE)
+        return BLACK;
+    if (color == BLACK)
+        return WHITE;
+
+    return -1;
+}
+
 BitBoard maskPawnAttacks(int playerColor, int squareIndex)
 {
     BitBoard result;
