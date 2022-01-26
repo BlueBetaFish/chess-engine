@@ -58,7 +58,7 @@ int main()
 
     Board b;
 
-    b.initializeFromFenString("r3k2r/p2pqpb1/bn2pnp1/2pPN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq c6 0 1 ");
+    b.initializeFromFenString("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10   ");
     cout << "\n\nBoard : \n";
     b.print();
 
@@ -74,8 +74,18 @@ int main()
     // cout << "\n\n\nAll attacked squares :\n";
     // b.getAllAttackedSquaresByGivenPlayer(BLACK).print();
 
-    vector<Move> moveList = b.generateAllPseudoLegalMovesOfGivenPlayer(b.getCurrentPlayer());
-    Move::printMoveList(moveList);
+    // vector<Move> moveList = b.generateAllPseudoLegalMovesOfGivenPlayer(b.getCurrentPlayer());
+    // Move::printMoveList(moveList);
+
+    // //*TODO: WRONG RESULT FOR DEPTHLIMIT 2 : DEBUG
+    for (int i = 1; i <= 5; i++)
+    {
+        int depthLimit = i;
+        cout << "\n\nTotal No of leaf nodes upto depth : " << depthLimit << "  =  " << b.perft_driver(depthLimit);
+    }
+
+    // int depthLimit = 5;
+    // b.perft_test(depthLimit);
 
     return 0;
 }

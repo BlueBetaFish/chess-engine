@@ -18,7 +18,7 @@ class Board
     vector<BitBoard> pieceBitBoards; // size 12
 
     //*side to move
-    COLOR currentPlayer;
+    int currentPlayer;
 
     //*en passant square (-1 means no enpassant square available)
     int enPassantSquareIndex;
@@ -51,6 +51,33 @@ public:
                 return piece;
         }
         return Piece::EMPTY_PIECE;
+    }
+
+    void removePieceFromGivenSquareOfGivenColor(int squareIndex, int color)
+    {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
+        int n = this->pieceBitBoards.size();
+
+        int startPiece = -1, endPiece = -1;
+        if (color == WHITE)
+        {
+            startPiece = Piece::P;
+            endPiece = Piece::K;
+        }
+        else
+        {
+            startPiece = Piece::p;
+            endPiece = Piece::k;
+        }
+        for (int piece = startPiece; piece <= endPiece; piece++)
+        {
+            if (this->pieceBitBoards[piece].getBitAt(squareIndex) == 1)
+            {
+                this->pieceBitBoards[piece].unsetBitAt(squareIndex);
+                return;
+            }
+        }
     }
 
     BitBoard inline getWhiteOccupancyBitBoard()
@@ -771,6 +798,223 @@ public:
 
         //*return move list
         return generatedMoves;
+    }
+
+    /*
+     *   executes the given move on the Board Object
+     *
+     *   If you want to execute the move, if it is only capture move (needed in Quiescence Search) , pass true as the 2nd argument (default value false)
+     *   Returns true if the move is legal ,
+     *                else returns false if the move is pseudo legal (i.e, current player's king can be captured after the move) and also undo the move
+     */
+    bool inline makeMove(const Move &move, bool onlyCaptureMove = false)
+    {
+        if (onlyCaptureMove)
+        {
+            if (move.captureFlag)
+                return makeMove(move);
+            else
+                return false;
+        }
+
+        int oppositeColor = Piece::getOppositeColor(this->currentPlayer);
+
+        //*make a copy of the board, so that if the move is not legal , then we can roll back to the previous state of board easily
+        Board backupBoardBeforeMakingMove = *this;
+
+        //*-----------------------Move the corresponding piece from fromSquare to toSquare-------------------------------*//
+        this->pieceBitBoards[move.pieceMoved].unsetBitAt(move.fromSquare);
+        this->pieceBitBoards[move.pieceMoved].setBitAt(move.toSquare);
+
+        //*------------------------Reset En passant flag(if the move is double pawn push, we will update enPassantSquare later)-------------*//
+        this->enPassantSquareIndex = -1;
+
+        //*------------------------Handle Capture Moves : Erase the captured piece from its position--------------------------*//
+        if (move.captureFlag)
+        {
+            this->removePieceFromGivenSquareOfGivenColor(move.toSquare, oppositeColor);
+
+            //*-------------------------------Handle En passant Captures------------------------------------//
+            if (move.enPassantFlag)
+            {
+                if (this->currentPlayer == WHITE)
+                    this->pieceBitBoards[Piece::p].unsetBitAt(move.toSquare + 8);
+                else
+                    this->pieceBitBoards[Piece::P].unsetBitAt(move.toSquare - 8);
+            }
+        }
+
+        //*--------------------------------------Handle Promotions-------------------------------------------*//
+        if (move.promotedPiece != -1)
+        {
+            //*remove the pawn from the toSquare
+            if (this->currentPlayer == WHITE)
+                this->pieceBitBoards[Piece::P].unsetBitAt(move.toSquare);
+            else
+                this->pieceBitBoards[Piece::p].unsetBitAt(move.toSquare);
+
+            //*place the promoted piece at the toSquare
+            this->pieceBitBoards[move.promotedPiece].setBitAt(move.toSquare);
+        }
+
+        //*-------------------------------------Handle Double pawn pushes(set new en passant square)-------------------------------------------//
+        if (move.doublePawnPushFlag)
+        {
+            if (this->currentPlayer == WHITE)
+                this->enPassantSquareIndex = move.toSquare + 8;
+            else
+                this->enPassantSquareIndex = move.toSquare - 8;
+        }
+
+        //*-----------------------------------Handle castling moves----------------------------------------------------//
+        if (move.castleFlag)
+        {
+            switch (move.toSquare)
+            {
+            case g1:                                           //*white king side
+                this->pieceBitBoards[Piece::R].unsetBitAt(h1); // remove the rook
+                this->pieceBitBoards[Piece::R].setBitAt(f1);   // place rook at correct position
+                break;
+
+            case c1:                                           //*white queen side
+                this->pieceBitBoards[Piece::R].unsetBitAt(a1); // remove the rook
+                this->pieceBitBoards[Piece::R].setBitAt(d1);   // place rook at correct position
+                break;
+
+            case g8:                                           //*black king side
+                this->pieceBitBoards[Piece::r].unsetBitAt(h8); // remove the rook
+                this->pieceBitBoards[Piece::r].setBitAt(f8);   // place rook at correct position
+                break;
+
+            case c8:                                           //*black queen side
+                this->pieceBitBoards[Piece::r].unsetBitAt(a8); // remove the rook
+                this->pieceBitBoards[Piece::r].setBitAt(d8);   // place rook at correct position
+                break;
+            }
+
+            //*update castling rights
+            if (this->currentPlayer == WHITE)
+                this->castlingRights[0] = this->castlingRights[1] = false;
+            else
+                this->castlingRights[2] = this->castlingRights[3] = false;
+        }
+
+        //*--------------------------Update castling rights if violated---------------------------------------------------//
+        //*if king is moved
+        if (move.pieceMoved == Piece ::K)
+            this->castlingRights[0] = this->castlingRights[1] = false;
+        else if (move.pieceMoved == Piece::k)
+            this->castlingRights[2] = this->castlingRights[3] = false;
+
+        //*if rook moved or captured
+        if (move.fromSquare == h1 || move.toSquare == h1)
+            this->castlingRights[0] = false;
+        if (move.fromSquare == a1 || move.toSquare == a1)
+            this->castlingRights[1] = false;
+        if (move.fromSquare == h8 || move.toSquare == h8)
+            this->castlingRights[2] = false;
+        if (move.fromSquare == a8 || move.toSquare == a8)
+            this->castlingRights[3] = false;
+
+        //*--------------------------------CHANGE CURRENT PLAYER-------------------------------------------------------//
+        this->currentPlayer = Piece::getOppositeColor(this->currentPlayer);
+
+        //*
+        //*
+        //*
+        //*
+        //*
+        //*-----------------------------------IF THE KING IS IN CHECK AFET MAKING THE MOVE, ROLL BACK -----------------------------------//
+        //*as the currentPlayer has been swapped , take care of that
+        int kingSquareIndex = this->currentPlayer == WHITE ? this->pieceBitBoards[Piece::k].getFirstLeastSignificantBitIndexFromRight() : this->pieceBitBoards[Piece::K].getFirstLeastSignificantBitIndexFromRight();
+
+        if (this->isGivenSquareAttackedByGivenPlayer(kingSquareIndex, this->currentPlayer))
+        {
+            *this = backupBoardBeforeMakingMove;
+
+            //*return false for illegal move
+            return false;
+        }
+        else
+            //*return true for legal move
+            return true;
+    }
+
+    /*
+     *   returns the number of leaf nodes upto given depth limit
+     */
+    long long perft_driver(int depthLimit)
+    {
+        if (depthLimit == 0)
+            return 1; // 1 leaf
+
+        long long totalCount = 0;
+
+        vector<Move> pseudoLegalMoves = this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer);
+        int pseudoLegalMovesSize = pseudoLegalMoves.size();
+        for (int i = 0; i < pseudoLegalMovesSize; i++)
+        {
+
+            //*before making move , copy the backup of current board so that we can unmake the move later
+            Board backupBoardBeforeMakingMove = *this;
+
+            // cout << "\nBoard : \n";
+            // this->print();
+
+            //*if the pseudo legal move is not legal , dont consider it
+            if (!this->makeMove(pseudoLegalMoves[i]))
+                continue;
+
+            // cout << "\nafter making move : " << pseudoLegalMoves[i].fromSquare << "-->" << pseudoLegalMoves[i].toSquare << " : \n";
+            // this->print();
+
+            totalCount += this->perft_driver(depthLimit - 1);
+
+            //*unmake the move on the current baord
+            *this = backupBoardBeforeMakingMove;
+        }
+
+        return totalCount;
+    }
+
+    /*
+     *   prints the number of leaf nodes upto given depth limit after the corresponding move
+     */
+    long long perft_test(int depthLimit)
+    {
+        if (depthLimit == 0)
+            return 1; // 1 leaf
+
+        long long totalCount = 0;
+
+        vector<Move> pseudoLegalMoves = this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer);
+        int pseudoLegalMovesSize = pseudoLegalMoves.size();
+        for (int i = 0; i < pseudoLegalMovesSize; i++)
+        {
+
+            //*TODO:testing
+            if (pseudoLegalMoves[i].fromSquare == b4)
+                cout << "\nhello\n";
+
+            //*before making move , copy the backup of current board so that we can unmake the move later
+            Board backupBoardBeforeMakingMove = *this;
+
+            //*if the pseudo legal move is not legal , dont consider it
+            if (!this->makeMove(pseudoLegalMoves[i]))
+                continue;
+
+            long long numberOfLeavesAfterCurrMove = this->perft_driver(depthLimit - 1);
+            totalCount += numberOfLeavesAfterCurrMove;
+
+            //*unmake the move on the current baord
+            *this = backupBoardBeforeMakingMove;
+
+            cout << "move : " << pseudoLegalMoves[i].getUCIMove() << "  ,  No of leaves : " << numberOfLeavesAfterCurrMove << endl;
+        }
+
+        cout << "\nTotal No of leaves : " << totalCount << endl;
+
+        return totalCount;
     }
 
     //*---------------------------------friend functions------------------------------------

@@ -58,6 +58,15 @@ public:
         cout << endl;
     }
 
+    string getUCIMove()
+    {
+        string res = BitBoard::getAlgebraicCoordinateFromIndex(this->fromSquare) + BitBoard::getAlgebraicCoordinateFromIndex(this->toSquare);
+        if (this->promotedPiece != -1)
+            res += Piece::getASCIICodeOfPiece(this->promotedPiece);
+
+        return res;
+    }
+
     static void inline printMoveList(const vector<Move> &moveList)
     {
         cout << "\n     Move list :\n";
