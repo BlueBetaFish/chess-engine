@@ -1,7 +1,7 @@
 
 #pragma once
-#include <iostream>
-#include <vector>
+
+#include "neededHeaders.h"
 
 #include "BitBoard.h"
 #include "PieceClass.h"

@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include <bits/stdc++.h>
+#include "neededHeaders.h"
+
 #include "definitions.h"
 #include "BitBoard.h"
 

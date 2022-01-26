@@ -1,6 +1,5 @@
 // Name: SOURASHIS MONDAL
-
-#include <bits/stdc++.h>
+#include "neededHeaders.h"
 
 using namespace std;
 
@@ -12,6 +11,18 @@ using namespace std;
 
 //*helper functions
 #include "helperFunctions.h"
+
+// get time in milliseconds
+int getTimeInMilliSeconds()
+{
+#ifdef WIN64
+    return GetTickCount();
+#else
+    struct timeval time_value;
+    gettimeofday(&time_value, NULL);
+    return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
+#endif
+}
 
 //*must be called at begining
 void initializeTables()
@@ -58,7 +69,7 @@ int main()
 
     Board b;
 
-    b.initializeFromFenString("8/p7/K7/3P4/8/1kn1r3/4p3/8 w - - 0 1");
+    b.initializeFromFenString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
     cout << "\n\nBoard : \n";
     b.print();
 
@@ -84,8 +95,14 @@ int main()
     //     cout << "\n\nTotal No of leaf nodes upto depth : " << depthLimit << "  =  " << b.perft_driver(depthLimit);
     // }
 
-    int depthLimit = 8;
+    long long startTime = getTimeInMilliSeconds();
+
+    int depthLimit = 4;
     b.perft_test(depthLimit);
+
+    long long endTime = getTimeInMilliSeconds();
+
+    cout << "\n\nExecution time = " << (endTime - startTime) << " milliseconds ." << endl;
 
     return 0;
 }

@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include <bits/stdc++.h>
+#include "neededHeaders.h"
+
 using namespace std;
 
 #include "definitions.h"
@@ -992,7 +993,7 @@ public:
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
 
-                     //*before making move , copy the backup of current board so that we can unmake the move later
+            //*before making move , copy the backup of current board so that we can unmake the move later
             Board backupBoardBeforeMakingMove = *this;
 
             //*if the pseudo legal move is not legal , dont consider it

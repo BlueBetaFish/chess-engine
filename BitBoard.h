@@ -1,6 +1,7 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include "neededHeaders.h"
+
 using namespace std;
 
 #include "definitions.h"
