@@ -2,28 +2,28 @@
 
 #include "definitions.h"
 
-enum PIECE_TYPE
-{
-
-    P,
-    N,
-    B,
-    R,
-    Q,
-    K,
-    p,
-    n,
-    b,
-    r,
-    q,
-    k,
-    EMPTY_PIECE
-
-};
-
 class Piece
 {
 public:
+    enum PIECE_TYPE
+    {
+
+        P,
+        N,
+        B,
+        R,
+        Q,
+        K,
+        p,
+        n,
+        b,
+        r,
+        q,
+        k,
+        EMPTY_PIECE
+
+    };
+
     static int whitePawn;
     static int whiteKnight;
     static int whiteBishop;
@@ -74,6 +74,7 @@ public:
             return '.';
 
         default:
+            throw runtime_error("\n\ninvalid piece type\n");
             return '!';
         }
     }
@@ -112,6 +113,8 @@ public:
             return EMPTY_PIECE;
 
         default:
+            throw runtime_error("\n\ninvalid piece type\n");
+
             return -1;
         }
     }
@@ -141,6 +144,8 @@ public:
 
         //*invalid
         default:
+            throw runtime_error("\n\ninvalid piece type\n");
+
             return -1;
         }
     }
@@ -170,8 +175,20 @@ public:
 
         //*invalid
         default:
+            throw runtime_error("\n\ninvalid piece type\n");
+
             return -1;
         }
+    }
+
+    static int inline getOppositeColor(int color)
+    {
+        if (color == WHITE)
+            return BLACK;
+        if (color == BLACK)
+            return WHITE;
+
+        return -1;
     }
 };
 

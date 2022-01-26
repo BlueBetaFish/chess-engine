@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "definitions.h"
+#include "PieceClass.h"
 
 //*----------------IMPORTANT--------------------------------------*//
 //* always create any BitBoard object before using the static lookup tables , so that they are initialized
@@ -101,14 +102,14 @@ public:
         return std::to_string(this->value);
     }
 
-    bool inline isSquareIndexValid(int squareIndex) const
+    static bool inline isSquareIndexValid(int squareIndex)
     {
         return (0 <= squareIndex && squareIndex < 64);
     }
 
-    void inline checkSquareIndexValidity(int squareIndex) const
+    static void inline checkSquareIndexValidity(int squareIndex)
     {
-        if (!isSquareIndexValid(squareIndex))
+        if (!BitBoard::isSquareIndexValid(squareIndex))
             throw runtime_error("Square index out of bound inside getBitAt()");
     }
 
@@ -119,28 +120,28 @@ public:
 
     int inline getBitAt(int squareIndex) const
     {
-        checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         return ((this->value & (1ULL << squareIndex)) == 0) ? 0 : 1;
     }
 
     void inline setBitAt(int squareIndex)
     {
-        checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         this->value = (this->value | (1ULL << squareIndex));
     }
 
     void inline toggleBitAt(int squareIndex)
     {
-        checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         this->value = (this->value ^ (1ULL << squareIndex));
     }
 
     void inline unsetBitAt(int squareIndex)
     {
-        checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         if (getBitAt(squareIndex) == 1)
             toggleBitAt(squareIndex);
@@ -235,9 +236,29 @@ public:
              << endl;
     }
 
+    static BitBoard inline getPawnAttacks(int squareIndex, int playerColor)
+    {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+        return PAWN_ATTACK_TABLE[playerColor][squareIndex];
+    }
+
+    static BitBoard inline getKnightAttacks(int squareIndex)
+    {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+        return KNIGHT_ATTACK_TABLE[squareIndex];
+    }
+
+    static BitBoard inline getKingAttacks(int squareIndex)
+    {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+        return KING_ATTACK_TABLE[squareIndex];
+    }
+
     //*Finds bishop attacks assuming current board occupancy as "blockers"
     static BitBoard inline getBishopAttacks(int squareIndex, const BitBoard &blockers)
     {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
         U64 occupancyValue = blockers.getDecimalValue();
 
         occupancyValue &= BitBoard::BISHOP_ATTACK_MASK[squareIndex].getDecimalValue();
@@ -251,6 +272,8 @@ public:
     //*Finds rook attacks assuming current board occupancy as "blockers"
     static BitBoard inline getRookAttacks(int squareIndex, const BitBoard &blockers)
     {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
         U64 occupancyValue = blockers.getDecimalValue();
 
         occupancyValue &= BitBoard::ROOK_ATTACK_MASK[squareIndex].getDecimalValue();
@@ -264,8 +287,51 @@ public:
     //*Finds queen attacks assuming current board occupancy as "blockers"
     static BitBoard inline getQueenAttacks(int squareIndex, const BitBoard &blockers)
     {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
         U64 res = (BitBoard::getBishopAttacks(squareIndex, blockers).getDecimalValue()) | (BitBoard::getRookAttacks(squareIndex, blockers).getDecimalValue());
         return BitBoard(res);
+    }
+
+    /*
+     *finds the attacks of given piece from given square
+     *Dont Forget to pass occupancy for slider pieces
+     */
+    static BitBoard inline getPieceAttacks(int squareIndex, int piece, const BitBoard &occupancy = BitBoard(0ULL))
+    {
+        if (piece < Piece::P || piece > Piece::k)
+            throw runtime_error("\n\ninvalid piece inside getPieceAttacks() function of BitBoard class\n\n");
+
+        switch (piece)
+        {
+        case Piece::P:
+            return getPawnAttacks(squareIndex, WHITE);
+        case Piece ::p:
+            return getPawnAttacks(squareIndex, BLACK);
+
+        case Piece ::N:
+        case Piece::n:
+            return getKnightAttacks(squareIndex);
+
+        case Piece ::B:
+        case Piece::b:
+            return getBishopAttacks(squareIndex, occupancy);
+
+        case Piece ::R:
+        case Piece::r:
+            return getRookAttacks(squareIndex, occupancy);
+
+        case Piece ::Q:
+        case Piece::q:
+            return getQueenAttacks(squareIndex, occupancy);
+
+        case Piece ::K:
+        case Piece::k:
+            return getKingAttacks(squareIndex);
+
+        default:
+            throw runtime_error("\n\nproblem inside getPieceAttacks() function of BitBoard Class\n\n");
+        }
     }
 
 private:
@@ -325,8 +391,10 @@ private:
     //*including the edge of the board and occupancy of blocker pieces
     static BitBoard generateBishopAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
     {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
         BitBoard result(0ULL, false);
-        result.checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         int targetIndex = -1;
 
@@ -434,8 +502,10 @@ private:
     //*Exludes the edge of the board
     static BitBoard generateRookAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
     {
+        BitBoard::checkSquareIndexValidity(squareIndex);
+
         BitBoard result(0ULL, false);
-        result.checkSquareIndexValidity(squareIndex);
+        BitBoard::checkSquareIndexValidity(squareIndex);
 
         int targetIndex = -1;
 

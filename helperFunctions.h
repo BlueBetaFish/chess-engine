@@ -27,22 +27,22 @@ BitBoard maskPawnAttacks(int playerColor, int squareIndex)
     if (playerColor == WHITE)
     {
         //*front left square index = squareIndex - 9
-        if (squareIndex % 8 != 0 && result.isSquareIndexValid(squareIndex - 9)) // if squareIndex is not on a file
+        if (squareIndex % 8 != 0 && BitBoard::isSquareIndexValid(squareIndex - 9)) // if squareIndex is not on a file
             result.setBitAt(squareIndex - 9);
 
         //*front right square index = squareIndex - 7
-        if (squareIndex % 8 != 7 && result.isSquareIndexValid(squareIndex - 7)) // if squareIndex is not on h file
+        if (squareIndex % 8 != 7 && BitBoard::isSquareIndexValid(squareIndex - 7)) // if squareIndex is not on h file
             result.setBitAt(squareIndex - 7);
     }
     //*for black pawns
     else if (playerColor == BLACK)
     {
         //*front left square index = squareIndex + 9
-        if (squareIndex % 8 != 7 && result.isSquareIndexValid(squareIndex + 9)) // if squareIndex is not on h file
+        if (squareIndex % 8 != 7 && BitBoard::isSquareIndexValid(squareIndex + 9)) // if squareIndex is not on h file
             result.setBitAt(squareIndex + 9);
 
         //*front right square index = squareIndex + 7
-        if (squareIndex % 8 != 0 && result.isSquareIndexValid(squareIndex + 7)) // if squareIndex is not on a file
+        if (squareIndex % 8 != 0 && BitBoard::isSquareIndexValid(squareIndex + 7)) // if squareIndex is not on a file
             result.setBitAt(squareIndex + 7);
     }
 
@@ -58,42 +58,42 @@ BitBoard maskKnightAttacks(int squareIndex)
 
     //*2 squares up, 1 square right , targetIndex = squareIndex - 15
     targetIndex = squareIndex - 15;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*2 squares up, 1 square left , targetIndex = squareIndex - 17
     targetIndex = squareIndex - 17;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*2 squares down, 1 square right , targetIndex = squareIndex + 17
     targetIndex = squareIndex + 17;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*2 squares down, 1 square left , targetIndex = squareIndex + 15
     targetIndex = squareIndex + 15;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*2 squares right, 1 square up , targetIndex = squareIndex - 6
     targetIndex = squareIndex - 6;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares right, 1 square down , targetIndex = squareIndex + 10
     targetIndex = squareIndex + 10;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::getFileOfSquareIndex(squareIndex) != 'g' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares left, 1 square up , targetIndex = squareIndex - 10
     targetIndex = squareIndex - 10;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*2 squares left, 1 square down , targetIndex = squareIndex + 6
     targetIndex = squareIndex + 6;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::getFileOfSquareIndex(squareIndex) != 'b' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     return result;
@@ -108,42 +108,42 @@ BitBoard maskKingAttacks(int squareIndex)
 
     //*1 square up
     targetIndex = squareIndex - 8;
-    if (result.isSquareIndexValid(targetIndex))
+    if (BitBoard::isSquareIndexValid(targetIndex))
         result.setBitAt(targetIndex);
 
     //*1 square down
     targetIndex = squareIndex + 8;
-    if (result.isSquareIndexValid(targetIndex))
+    if (BitBoard::isSquareIndexValid(targetIndex))
         result.setBitAt(targetIndex);
 
     //*1 square right
     targetIndex = squareIndex + 1;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h file
         result.setBitAt(targetIndex);
 
     //*1 square left
     targetIndex = squareIndex - 1;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on a file
         result.setBitAt(targetIndex);
 
     //*1 square up, 1 square right
     targetIndex = squareIndex - 7;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square down, 1 square right
     targetIndex = squareIndex + 9;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'h' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square up, 1 square left :
     targetIndex = squareIndex - 9;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     //*1 square down, 1 square left
     targetIndex = squareIndex + 7;
-    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && result.isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
+    if (BitBoard::getFileOfSquareIndex(squareIndex) != 'a' && BitBoard::isSquareIndexValid(targetIndex)) // if squareIndex is not on h or g file
         result.setBitAt(targetIndex);
 
     return result;
