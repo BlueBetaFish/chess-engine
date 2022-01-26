@@ -58,7 +58,7 @@ int main()
 
     Board b;
 
-    b.initializeFromFenString("7K/pp3p2/2N2pPN/Pprp1P2/1n2b1P1/P2qr1R1/4P2p/QB2k3 w - - 0 1");
+    b.initializeFromFenString("r3k2r/p2pqpb1/bn2pnp1/2pPN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq c6 0 1 ");
     cout << "\n\nBoard : \n";
     b.print();
 
@@ -74,7 +74,8 @@ int main()
     // cout << "\n\n\nAll attacked squares :\n";
     // b.getAllAttackedSquaresByGivenPlayer(BLACK).print();
 
-    b.generateAllPseudoLegalMovesOfGivenPlayer(b.getCurrentPlayer());
+    vector<Move> moveList = b.generateAllPseudoLegalMovesOfGivenPlayer(b.getCurrentPlayer());
+    Move::printMoveList(moveList);
 
     return 0;
 }

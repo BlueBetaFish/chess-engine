@@ -7,6 +7,7 @@ using namespace std;
 #include "definitions.h"
 #include "BitBoard.h"
 #include "PieceClass.h"
+#include "Move.h"
 
 class Board
 {
@@ -376,8 +377,10 @@ public:
     }
 
     //*TODO: handle return of Move object list , and create Move class later
-    void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor)
+    vector<Move> generateAllPseudoLegalMovesOfGivenPlayer(int playerColor)
     {
+
+        vector<Move> generatedMoves;
 
         if (playerColor != WHITE && playerColor != BLACK)
             throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
@@ -395,7 +398,7 @@ public:
         //*Define a BitBoard for attacked squares
         BitBoard attackBitBoard;
 
-        //*-------------------------------PAWN ATTACKS------------------------------------------------//
+        //*-------------------------------PAWN Moves------------------------------------------------//
         if (playerColor == WHITE)
         {
             pieceBitBoard = this->pieceBitBoards[Piece::P];
@@ -419,25 +422,30 @@ public:
                     //*-----------------handle promotions------------------------------------
                     if (BitBoard::getRankOfSquareIndex(fromSquare) == 7)
                     {
-                        // string fromSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(fromSquare);
-                        // string toSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(toSquare);
 
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion" << endl;
+
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::Q, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::R, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::B, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::N, false, false, false, false));
                     }
                     else
                     {
                         //*--------------pawn push of one square-------------------------//
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, -1, false, false, false, false));
 
                         //*------------double pawn push--------------------------------------//
                         //*dont forget to update enPassant square
 
                         if (BitBoard::getRankOfSquareIndex(fromSquare) == 2 && allOccupancy.getBitAt(toSquare - 8) == 0)
                         {
-                            cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare - 8) << " ----> double pawn push" << endl;
+                            // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare - 8) << " ----> double pawn push" << endl;
+                            generatedMoves.push_back(Move(fromSquare, toSquare - 8, Piece::P, -1, false, true, false, false));
                         }
                     }
                 }
@@ -456,18 +464,21 @@ public:
                     //*-------------------handle promotion---------------------------------------//
                     if (BitBoard::getRankOfSquareIndex(fromSquare) == 7)
                     {
-                        // string fromSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(fromSquare);
-                        // string toSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(toSquare);
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion capture" << endl;
 
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion capture" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::Q, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::R, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::B, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::N, true, false, false, false));
                     }
                     else
                     {
                         //*normal capture without promotion
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn capture" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, -1, true, false, false, false));
                     }
 
                     //*pop the bit
@@ -483,7 +494,8 @@ public:
                     if (attackBitBoard.getBitAt(this->enPassantSquareIndex) == 1)
                     {
                         toSquare = this->enPassantSquareIndex;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn enPassant capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn enPassant capture" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, -1, true, false, true, false));
                     }
                 }
 
@@ -514,25 +526,29 @@ public:
                     //*-----------------handle promotions------------------------------------
                     if (BitBoard::getRankOfSquareIndex(fromSquare) == 2)
                     {
-                        // string fromSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(fromSquare);
-                        // string toSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(toSquare);
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion" << endl;
 
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::q, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::r, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::b, false, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::n, false, false, false, false));
                     }
                     else
                     {
                         //*--------------pawn push of one square-------------------------//
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, -1, false, false, false, false));
 
                         //*------------double pawn push--------------------------------------//
                         //*dont forget to update enPassant square
                         if (BitBoard::getRankOfSquareIndex(fromSquare) == 7 && allOccupancy.getBitAt(toSquare + 8) == 0)
                         {
 
-                            cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare + 8) << " ----> double pawn push" << endl;
+                            // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare + 8) << " ----> double pawn push" << endl;
+                            generatedMoves.push_back(Move(fromSquare, toSquare + 8, Piece::p, -1, false, true, false, false));
                         }
                     }
                 }
@@ -551,18 +567,22 @@ public:
                     //*-------------------handle promotion---------------------------------------//
                     if (BitBoard::getRankOfSquareIndex(fromSquare) == 2)
                     {
-                        // string fromSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(fromSquare);
-                        // string toSquareAlgebricCoordinate = BitBoard::getAlgebraicCoordinateFromIndex(toSquare);
 
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion capture" << endl;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "q ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "r ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion capture" << endl;
+
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::q, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::r, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::b, true, false, false, false));
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, Piece::n, true, false, false, false));
                     }
                     else
                     {
                         //*normal capture without promotion
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn capture" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, -1, true, false, false, false));
                     }
 
                     //*pop the bit
@@ -578,7 +598,8 @@ public:
                     if (attackBitBoard.getBitAt(this->enPassantSquareIndex) == 1)
                     {
                         toSquare = this->enPassantSquareIndex;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn enPassant capture" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> pawn enPassant capture" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::p, -1, true, false, true, false));
                     }
                 }
 
@@ -603,7 +624,9 @@ public:
                     if (!this->isGivenSquareAttackedByGivenPlayer(e1, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(f1, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(g1, oppositeColor))
                     {
                         toSquare = g1;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::K, -1, false, false, false, true));
                     }
                 }
             }
@@ -618,7 +641,9 @@ public:
                     if (!this->isGivenSquareAttackedByGivenPlayer(e1, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(d1, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(c1, oppositeColor))
                     {
                         toSquare = c1;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::K, -1, false, false, false, true));
                     }
                 }
             }
@@ -638,7 +663,9 @@ public:
                     if (!this->isGivenSquareAttackedByGivenPlayer(e8, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(f8, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(g8, oppositeColor))
                     {
                         toSquare = g8;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::k, -1, false, false, false, true));
                     }
                 }
             }
@@ -653,7 +680,9 @@ public:
                     if (!this->isGivenSquareAttackedByGivenPlayer(e8, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(d8, oppositeColor) && !this->isGivenSquareAttackedByGivenPlayer(c8, oppositeColor))
                     {
                         toSquare = c8;
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> castling move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, Piece::k, -1, false, false, false, true));
                     }
                 }
             }
@@ -669,33 +698,36 @@ public:
         };
         for (int i = 0; i < tempPieces.size(); i++)
         {
+            int currPiece = -1;
             if (playerColor == WHITE)
             {
-                pieceBitBoard = this->pieceBitBoards[tempPieces[i]];
+                currPiece = tempPieces[i];
             }
             else // if black
             {
                 switch (tempPieces[i])
                 {
                 case Piece::N:
-                    pieceBitBoard = this->pieceBitBoards[Piece::n];
+                    currPiece = Piece::n;
                     break;
                 case Piece::B:
-                    pieceBitBoard = this->pieceBitBoards[Piece::b];
+                    currPiece = Piece::b;
                     break;
                 case Piece::R:
-                    pieceBitBoard = this->pieceBitBoards[Piece::r];
+                    currPiece = Piece::r;
                     break;
                 case Piece::Q:
-                    pieceBitBoard = this->pieceBitBoards[Piece::q];
+                    currPiece = Piece::q;
                     break;
                 case Piece::K:
-                    pieceBitBoard = this->pieceBitBoards[Piece::k];
+                    currPiece = Piece::k;
                     break;
                 default:
                     break;
                 }
             }
+
+            pieceBitBoard = this->pieceBitBoards[currPiece];
 
             while (pieceBitBoard.getDecimalValue())
             {
@@ -718,12 +750,14 @@ public:
                     //*quiet moves
                     if (oppositePlayerOccupancy.getBitAt(toSquare) == 0)
                     {
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> piece quiet move" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> piece quiet move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, currPiece, -1, false, false, false, false));
                     }
                     //*capture
                     else
                     {
-                        cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> piece capture move" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "  ----> piece capture move" << endl;
+                        generatedMoves.push_back(Move(fromSquare, toSquare, currPiece, -1, true, false, false, false));
                     }
 
                     //*POP BIT
@@ -734,6 +768,9 @@ public:
                 pieceBitBoard.unsetBitAt(leastSignificantSetBitIndex);
             }
         }
+
+        //*return move list
+        return generatedMoves;
     }
 
     //*---------------------------------friend functions------------------------------------
