@@ -97,7 +97,7 @@ int main()
 
     long long startTime = getTimeInMilliSeconds();
 
-    int depthLimit = 4;
+    int depthLimit = 6;
     b.perft_test(depthLimit);
 
     long long endTime = getTimeInMilliSeconds();

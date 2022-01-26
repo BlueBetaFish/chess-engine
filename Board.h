@@ -56,7 +56,8 @@ public:
 
     void removePieceFromGivenSquareOfGivenColor(int squareIndex, int color)
     {
-        BitBoard::checkSquareIndexValidity(squareIndex);
+        // BitBoard::checkSquareIndexValidity(squareIndex);
+        assert(0 <= squareIndex && squareIndex < 64);
 
         int n = this->pieceBitBoards.size();
 
@@ -410,8 +411,9 @@ public:
 
         vector<Move> generatedMoves;
 
-        if (playerColor != WHITE && playerColor != BLACK)
-            throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
+        // if (playerColor != WHITE && playerColor != BLACK)
+        //     throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
+        assert(playerColor == WHITE || playerColor == BLACK);
 
         int fromSquare, toSquare;
 
