@@ -992,11 +992,7 @@ public:
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
 
-            //*TODO:testing
-            if (pseudoLegalMoves[i].fromSquare == b4)
-                cout << "\nhello\n";
-
-            //*before making move , copy the backup of current board so that we can unmake the move later
+                     //*before making move , copy the backup of current board so that we can unmake the move later
             Board backupBoardBeforeMakingMove = *this;
 
             //*if the pseudo legal move is not legal , dont consider it

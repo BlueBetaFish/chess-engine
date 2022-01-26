@@ -58,7 +58,7 @@ int main()
 
     Board b;
 
-    b.initializeFromFenString("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10   ");
+    b.initializeFromFenString("8/p7/K7/3P4/8/1kn1r3/4p3/8 w - - 0 1");
     cout << "\n\nBoard : \n";
     b.print();
 
@@ -77,15 +77,15 @@ int main()
     // vector<Move> moveList = b.generateAllPseudoLegalMovesOfGivenPlayer(b.getCurrentPlayer());
     // Move::printMoveList(moveList);
 
-    // //*TODO: WRONG RESULT FOR DEPTHLIMIT 2 : DEBUG
-    for (int i = 1; i <= 5; i++)
-    {
-        int depthLimit = i;
-        cout << "\n\nTotal No of leaf nodes upto depth : " << depthLimit << "  =  " << b.perft_driver(depthLimit);
-    }
+    // // //*TODO: WRONG RESULT FOR DEPTHLIMIT 2 : DEBUG
+    // for (int i = 1; i <= 5; i++)
+    // {
+    //     int depthLimit = i;
+    //     cout << "\n\nTotal No of leaf nodes upto depth : " << depthLimit << "  =  " << b.perft_driver(depthLimit);
+    // }
 
-    // int depthLimit = 5;
-    // b.perft_test(depthLimit);
+    int depthLimit = 8;
+    b.perft_test(depthLimit);
 
     return 0;
 }
