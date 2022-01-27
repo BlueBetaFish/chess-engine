@@ -21,6 +21,8 @@ public:
     bool enPassantFlag;
     bool castleFlag;
 
+    static Move INVALID_MOVE;
+
     /*
         if there is no promoted piece, then promotedPiece = -1
     */
@@ -79,4 +81,19 @@ public:
         for (auto move : moveList)
             move.print();
     }
+
+    bool operator==(const Move &newMove)
+    {
+        return (
+            this->fromSquare == newMove.fromSquare &&
+            this->toSquare == newMove.toSquare &&
+            this->pieceMoved == newMove.pieceMoved &&
+            this->promotedPiece == newMove.promotedPiece &&
+            this->captureFlag == newMove.captureFlag &&
+            this->doublePawnPushFlag == newMove.doublePawnPushFlag &&
+            this->enPassantFlag == newMove.enPassantFlag &&
+            this->castleFlag == newMove.castleFlag);
+    }
 };
+
+Move Move::INVALID_MOVE = Move(-1, -1, -1, -1, false, false, false, false);

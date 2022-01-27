@@ -406,10 +406,10 @@ public:
     }
 
     //*TODO: handle return of Move object list , and create Move class later
-    vector<Move> generateAllPseudoLegalMovesOfGivenPlayer(int playerColor)
+    void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, vector<Move> &generatedMoves)
     {
 
-        vector<Move> generatedMoves;
+        // vector<Move> generatedMoves;
 
         // if (playerColor != WHITE && playerColor != BLACK)
         //     throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
@@ -799,8 +799,9 @@ public:
             }
         }
 
+        //*TODO: if instead of returning new vector, passing vector as argument and updating it doesnt improve performance , check later
         //*return move list
-        return generatedMoves;
+        // return generatedMoves;
     }
 
     /*
@@ -953,7 +954,8 @@ public:
 
         long long totalCount = 0;
 
-        vector<Move> pseudoLegalMoves = this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer);
+        vector<Move> pseudoLegalMoves;
+        this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
@@ -990,7 +992,8 @@ public:
 
         long long totalCount = 0;
 
-        vector<Move> pseudoLegalMoves = this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer);
+        vector<Move> pseudoLegalMoves;
+        this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
