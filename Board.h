@@ -18,7 +18,7 @@ protected:
     // BitBoard whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing;
     // BitBoard blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing;
     //*Pieces enum : {P = 0, N = 1, B = 2, R = 3, Q = 4, K = 5, p = 6, n = 7, b = 8, r = 9, q = 10, k = 11, EMPTY_PIECE = 12}
-    vector<BitBoard> pieceBitBoards; // size 12
+    BitBoard pieceBitBoards[12]; // size 12
 
     //*side to move
     int currentPlayer;
@@ -27,25 +27,25 @@ protected:
     int enPassantSquareIndex;
 
     //*castling rights : [whiteKingSide, whiteQueenSide, blackKingSide, blackQueenSide]
-    vector<bool> castlingRights;
+    bool castlingRights[4];
 
 public:
     Board()
     {
         for (int i = 0; i < 12; i++)
-            this->pieceBitBoards.push_back(BitBoard(0ULL));
+            this->pieceBitBoards[i] = (0ULL);
 
         this->currentPlayer = WHITE;
         this->enPassantSquareIndex = -1;
-        this->castlingRights = {true, true, true, true};
+        this->castlingRights[0] = this->castlingRights[1] = this->castlingRights[2] = this->castlingRights[3] = true;
     }
 
-    int getCurrentPlayer()
+    inline int getCurrentPlayer()
     {
         return this->currentPlayer;
     }
 
-    // get the piece at given square
+    // *get the piece at given square
     int inline getPieceAtSquare(int squareIndex)
     {
         for (int piece = Piece::P; piece <= Piece::k; piece++)
@@ -61,7 +61,7 @@ public:
         // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
 
-        int n = this->pieceBitBoards.size();
+        int n = 12;
 
         int startPiece = -1, endPiece = -1;
         if (color == WHITE)
@@ -169,10 +169,10 @@ public:
     {
         //* reset member fields ______________________________________________________________
 
-        for (int i = 0; i < this->pieceBitBoards.size(); i++)
+        for (int i = 0; i < 12; i++)
             this->pieceBitBoards[i] = 0ULL;
 
-        for (int i = 0; i < this->castlingRights.size(); i++)
+        for (int i = 0; i < 4; i++)
             this->castlingRights[i] = false;
 
         this->currentPlayer = WHITE;
@@ -248,7 +248,7 @@ public:
 
         if (fen[k] == '-')
         {
-            for (int i = 0; i < this->castlingRights.size(); i++)
+            for (int i = 0; i < 4; i++)
                 this->castlingRights[i] = false;
 
             // *skip the castling string
@@ -364,15 +364,15 @@ public:
 
         //* check pawn attacks
         //*if there is any opposite color pawn on the square where currrent color pawn can attack, then that opposite pawn can also attack this current color pawn at given square
-        if (BitBoard::getPawnAttacks(squareIndex, oppositePlayer).getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::P].getDecimalValue() : this->pieceBitBoards[Piece::p].getDecimalValue()))
+        if (BitBoard::PAWN_ATTACK_TABLE[oppositePlayer][squareIndex].getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::P].getDecimalValue() : this->pieceBitBoards[Piece::p].getDecimalValue()))
             return true;
 
         //*check knight attacks
-        if (BitBoard::getKnightAttacks(squareIndex).getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::N].getDecimalValue() : this->pieceBitBoards[Piece::n].getDecimalValue()))
+        if (BitBoard::KNIGHT_ATTACK_TABLE[squareIndex].getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::N].getDecimalValue() : this->pieceBitBoards[Piece::n].getDecimalValue()))
             return true;
 
         //*check king attacks
-        if (BitBoard::getKingAttacks(squareIndex).getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::K].getDecimalValue() : this->pieceBitBoards[Piece::k].getDecimalValue()))
+        if (BitBoard::KING_ATTACK_TABLE[squareIndex].getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::K].getDecimalValue() : this->pieceBitBoards[Piece::k].getDecimalValue()))
             return true;
 
         BitBoard allBlockers = this->getAllOccupancyBitBoard();
@@ -413,10 +413,8 @@ public:
     }
 
     //*TODO: handle return of Move object list , and create Move class later
-    void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, vector<Move> &generatedMoves)
+    void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, MoveList &generatedMoves)
     {
-
-        // vector<Move> generatedMoves;
 
         // if (playerColor != WHITE && playerColor != BLACK)
         //     throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
@@ -490,7 +488,7 @@ public:
                 //*---------------------------------generate pawn capture moves---------------------------------------------//
 
                 //*only take the square if there is a opposite color piece
-                attackBitBoard = BitBoard::getPawnAttacks(fromSquare, playerColor).getDecimalValue() & oppositePlayerOccupancy.getDecimalValue();
+                attackBitBoard = BitBoard::PAWN_ATTACK_TABLE[playerColor][fromSquare].getDecimalValue() & oppositePlayerOccupancy.getDecimalValue();
 
                 //*iterate pawn attack squares
                 while (attackBitBoard.getDecimalValue())
@@ -526,7 +524,7 @@ public:
                 //*also make sure that the enPassant square was created by other player
                 if (this->enPassantSquareIndex != -1 && this->currentPlayer == playerColor)
                 {
-                    BitBoard attackBitBoard = BitBoard::getPawnAttacks(fromSquare, playerColor);
+                    BitBoard attackBitBoard = BitBoard::PAWN_ATTACK_TABLE[playerColor][fromSquare];
 
                     if (attackBitBoard.getBitAt(this->enPassantSquareIndex) == 1)
                     {
@@ -593,7 +591,7 @@ public:
                 //*---------------------------------generate pawn capture moves---------------------------------------------//
 
                 //*only take the square if there is a opposite color piece
-                attackBitBoard = BitBoard(BitBoard::getPawnAttacks(fromSquare, playerColor).getDecimalValue() & oppositePlayerOccupancy.getDecimalValue());
+                attackBitBoard = BitBoard(BitBoard::PAWN_ATTACK_TABLE[playerColor][fromSquare].getDecimalValue() & oppositePlayerOccupancy.getDecimalValue());
 
                 //*iterate pawn attack squares
                 while (attackBitBoard.getDecimalValue())
@@ -630,7 +628,7 @@ public:
                 //*also make sure that the enPassant square was created by other player
                 if (this->enPassantSquareIndex != -1 && this->currentPlayer == playerColor)
                 {
-                    BitBoard attackBitBoard = BitBoard::getPawnAttacks(fromSquare, playerColor);
+                    BitBoard attackBitBoard = BitBoard::PAWN_ATTACK_TABLE[playerColor][fromSquare];
 
                     if (attackBitBoard.getBitAt(this->enPassantSquareIndex) == 1)
                     {
@@ -726,14 +724,16 @@ public:
         }
 
         //*----------------------------------------------------KNIGHT, BISHOP, ROOK, QUEEN, KING  MOVES--------------------------------------------------------------*//
-        vector<int> tempPieces = {
+        int tempPieces[] = {
             Piece::N,
             Piece::B,
             Piece::R,
             Piece::Q,
             Piece::K,
         };
-        for (int i = 0; i < tempPieces.size(); i++)
+
+        int tempPiecesSize = sizeof(tempPieces) / sizeof(tempPieces[0]);
+        for (int i = 0; i < tempPiecesSize; i++)
         {
             int currPiece = -1;
             if (playerColor == WHITE)
@@ -805,10 +805,6 @@ public:
                 pieceBitBoard.unsetBitAt(leastSignificantSetBitIndex);
             }
         }
-
-        //*TODO: if instead of returning new vector, passing vector as argument and updating it doesnt improve performance , check later
-        //*return move list
-        // return generatedMoves;
     }
 
     /*
@@ -961,7 +957,7 @@ public:
 
         long long totalCount = 0;
 
-        vector<Move> pseudoLegalMoves;
+        MoveList pseudoLegalMoves;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
         for (int i = 0; i < pseudoLegalMovesSize; i++)
@@ -999,7 +995,7 @@ public:
 
         long long totalCount = 0;
 
-        vector<Move> pseudoLegalMoves;
+        MoveList pseudoLegalMoves;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
         for (int i = 0; i < pseudoLegalMovesSize; i++)

@@ -23,6 +23,10 @@ public:
 
     static Move INVALID_MOVE;
 
+    Move()
+    {
+    }
+
     /*
         if there is no promoted piece, then promotedPiece = -1
     */
@@ -82,7 +86,7 @@ public:
             move.print();
     }
 
-    bool operator==(const Move &newMove)
+    inline bool operator==(const Move &newMove)
     {
         return (
             this->fromSquare == newMove.fromSquare &&
@@ -97,3 +101,36 @@ public:
 };
 
 Move Move::INVALID_MOVE = Move(-1, -1, -1, -1, false, false, false, false);
+
+//*----------------MOVE LIST CLASS___________________________________________________________
+class MoveList
+{
+    Move arr[256];
+    int currSize;
+
+public:
+    MoveList()
+    {
+        currSize = 0;
+    }
+
+    inline int size()
+    {
+        return this->currSize;
+    }
+
+    inline void addMove(const Move &move)
+    {
+        this->arr[this->currSize++] = move;
+    }
+
+    inline void push_back(const Move &move)
+    {
+        this->arr[this->currSize++] = move;
+    }
+
+    Move &operator[](int i)
+    {
+        return this->arr[i];
+    }
+};

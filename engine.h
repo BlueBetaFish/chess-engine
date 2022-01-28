@@ -32,7 +32,11 @@ class Engine : public Board
     static int mirrorIndex[128];
 
 public:
-    Engine(string fen = START_POSITION_FEN)
+    Engine()
+    {
+    }
+
+    Engine(string fen)
     {
         this->initializeFromFenString(fen);
     }
@@ -158,13 +162,16 @@ public:
             int maxScore = INT_MIN;
 
             //*generate all pseudo legal moves
-            vector<Move> moveList;
+            MoveList moveList;
             this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
             Engine backUpCopyOfBoard = *this;
 
-            for (Move move : moveList)
+            int moveListSize = moveList.size();
+
+            for (int i = 0; i < moveListSize; i++)
             {
+                Move move = moveList[i];
                 //*if making this move lets opponent capture our king , dont consider it
                 if (!this->makeMove(move))
                     continue;
@@ -213,13 +220,16 @@ public:
             int minScore = INT_MAX;
 
             //*generate all pseudo legal moves
-            vector<Move> moveList;
+            MoveList moveList;
             this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
             Engine backUpCopyOfBoard = *this;
 
-            for (Move move : moveList)
+            int moveListSize = moveList.size();
+            for (int i = 0; i < moveListSize; i++)
             {
+                Move move = moveList[i];
+
                 //*if making this move lets opponent capture our king , dont consider it
                 if (!this->makeMove(move))
                     continue;

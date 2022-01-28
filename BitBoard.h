@@ -33,16 +33,17 @@ class BitBoard
     //*---------------------lookup tables-------------------------------*//
     static bool lookupTablesInitialized;
 
-    static vector<BitBoard> BISHOP_ATTACK_MASK;
-    static vector<BitBoard> ROOK_ATTACK_MASK;
-    static vector<int> BISHOP_ATTACK_MASK_SET_BIT_COUNT;
-    static vector<int> ROOK_ATTACK_MASK_SET_BIT_COUNT;
-    static vector<U64> BISHOP_MAGIC_NUMBER;
-    static vector<U64> ROOK_MAGIC_NUMBER;
+    static BitBoard BISHOP_ATTACK_MASK[64];
+    static BitBoard ROOK_ATTACK_MASK[64];
+    static int BISHOP_ATTACK_MASK_SET_BIT_COUNT[64];
+    static int ROOK_ATTACK_MASK_SET_BIT_COUNT[64];
+    static U64 BISHOP_MAGIC_NUMBER[64];
+    static U64 ROOK_MAGIC_NUMBER[64];
 
-    static vector<vector<BitBoard>> PAWN_ATTACK_TABLE;
-    static vector<BitBoard> KNIGHT_ATTACK_TABLE;
-    static vector<BitBoard> KING_ATTACK_TABLE;
+public:
+    static BitBoard PAWN_ATTACK_TABLE[2][64];
+    static BitBoard KNIGHT_ATTACK_TABLE[64];
+    static BitBoard KING_ATTACK_TABLE[64];
 
     //* BISHOP_ATTACK_TABLE[squareIndex][occupancyBitBoard], size = 64 * 512 (--------------------------- to be initialized---------------------------)
     static vector<vector<BitBoard>> BISHOP_ATTACK_TABLE; // *size = 64 * 512
@@ -322,13 +323,13 @@ public:
         switch (piece)
         {
         case Piece::P:
-            return getPawnAttacks(squareIndex, WHITE);
+            return PAWN_ATTACK_TABLE[WHITE][squareIndex];
         case Piece ::p:
-            return getPawnAttacks(squareIndex, BLACK);
+            return PAWN_ATTACK_TABLE[BLACK][squareIndex];
 
         case Piece ::N:
         case Piece::n:
-            return getKnightAttacks(squareIndex);
+            return KNIGHT_ATTACK_TABLE[squareIndex];
 
         case Piece ::B:
         case Piece::b:
@@ -344,7 +345,7 @@ public:
 
         case Piece ::K:
         case Piece::k:
-            return getKingAttacks(squareIndex);
+            return KING_ATTACK_TABLE[squareIndex];
 
         default:
             throw runtime_error("\n\nproblem inside getPieceAttacks() function of BitBoard Class\n\n");
@@ -614,13 +615,6 @@ private:
         //*make it true so that the attack tables are not initialized for every object creation of BitBoard class
         BitBoard::lookupTablesInitialized = true;
 
-        // //*initialize the vectors with given size
-        // vector<vector<BitBoard>> emptyBishopVector(64, vector<BitBoard>(512, 0));
-        // vector<vector<BitBoard>> emptyRookVector(64, vector<BitBoard>(4096, 0));
-
-        // BitBoard::BISHOP_ATTACK_TABLE = emptyBishopVector;
-        // BitBoard::ROOK_ATTACK_TABLE = emptyRookVector;
-
         //*assign values to the attack tables
 
         for (int squareIndex = 0; squareIndex < 64; squareIndex++)
@@ -715,7 +709,7 @@ bool BitBoard::lookupTablesInitialized = false;
 //*-----------------------------------------------------------------IMPORTANT-----------------------------------------------------------*//
 
 //*Exludes the edge of the board , size = 64
-vector<BitBoard> BitBoard::BISHOP_ATTACK_MASK =
+BitBoard BitBoard::BISHOP_ATTACK_MASK[64] =
     {BitBoard(18049651735527936ULL, false), BitBoard(70506452091904ULL, false), BitBoard(275415828992ULL, false), BitBoard(1075975168ULL, false), BitBoard(38021120ULL, false), BitBoard(8657588224ULL, false), BitBoard(2216338399232ULL, false), BitBoard(567382630219776ULL, false), BitBoard(9024825867763712ULL, false), BitBoard(18049651735527424ULL, false), BitBoard(70506452221952ULL, false), BitBoard(275449643008ULL, false), BitBoard(9733406720ULL, false), BitBoard(2216342585344ULL, false), BitBoard(567382630203392ULL, false), BitBoard(1134765260406784ULL, false), BitBoard(4512412933816832ULL, false), BitBoard(9024825867633664ULL, false), BitBoard(18049651768822272ULL, false), BitBoard(70515108615168ULL, false), BitBoard(2491752130560ULL, false), BitBoard(567383701868544ULL, false), BitBoard(1134765256220672ULL, false), BitBoard(2269530512441344ULL, false), BitBoard(2256206450263040ULL, false), BitBoard(4512412900526080ULL, false), BitBoard(9024834391117824ULL, false), BitBoard(18051867805491712ULL, false), BitBoard(637888545440768ULL, false), BitBoard(1135039602493440ULL, false), BitBoard(2269529440784384ULL, false), BitBoard(4539058881568768ULL, false), BitBoard(1128098963916800ULL, false), BitBoard(2256197927833600ULL, false), BitBoard(4514594912477184ULL, false), BitBoard(9592139778506752ULL, false), BitBoard(19184279556981248ULL, false), BitBoard(2339762086609920ULL, false), BitBoard(4538784537380864ULL, false), BitBoard(9077569074761728ULL, false), BitBoard(562958610993152ULL, false), BitBoard(1125917221986304ULL, false), BitBoard(2814792987328512ULL, false), BitBoard(5629586008178688ULL, false), BitBoard(11259172008099840ULL, false), BitBoard(22518341868716544ULL, false), BitBoard(9007336962655232ULL, false), BitBoard(18014673925310464ULL, false), BitBoard(2216338399232ULL, false), BitBoard(4432676798464ULL, false), BitBoard(11064376819712ULL, false), BitBoard(22137335185408ULL, false), BitBoard(44272556441600ULL, false), BitBoard(87995357200384ULL, false), BitBoard(35253226045952ULL, false), BitBoard(70506452091904ULL, false), BitBoard(567382630219776ULL, false), BitBoard(1134765260406784ULL, false), BitBoard(2832480465846272ULL, false), BitBoard(5667157807464448ULL, false), BitBoard(11333774449049600ULL, false), BitBoard(22526811443298304ULL, false), BitBoard(9024825867763712ULL, false), BitBoard(18049651735527936ULL, false)};
 
 //*Exludes the edge of the board
@@ -744,21 +738,21 @@ for squareINdex = d4
   a   b   c   d   e   f   g   h   --------> File
 */
 // *size = 64
-vector<BitBoard> BitBoard::ROOK_ATTACK_MASK =
+BitBoard BitBoard::ROOK_ATTACK_MASK[64] =
     {BitBoard(282578800148862ULL, false), BitBoard(565157600297596ULL, false), BitBoard(1130315200595066ULL, false), BitBoard(2260630401190006ULL, false), BitBoard(4521260802379886ULL, false), BitBoard(9042521604759646ULL, false), BitBoard(18085043209519166ULL, false), BitBoard(36170086419038334ULL, false), BitBoard(282578800180736ULL, false), BitBoard(565157600328704ULL, false), BitBoard(1130315200625152ULL, false), BitBoard(2260630401218048ULL, false), BitBoard(4521260802403840ULL, false), BitBoard(9042521604775424ULL, false), BitBoard(18085043209518592ULL, false), BitBoard(36170086419037696ULL, false), BitBoard(282578808340736ULL, false), BitBoard(565157608292864ULL, false), BitBoard(1130315208328192ULL, false), BitBoard(2260630408398848ULL, false), BitBoard(4521260808540160ULL, false), BitBoard(9042521608822784ULL, false), BitBoard(18085043209388032ULL, false), BitBoard(36170086418907136ULL, false), BitBoard(282580897300736ULL, false), BitBoard(565159647117824ULL, false), BitBoard(1130317180306432ULL, false), BitBoard(2260632246683648ULL, false), BitBoard(4521262379438080ULL, false), BitBoard(9042522644946944ULL, false), BitBoard(18085043175964672ULL, false), BitBoard(36170086385483776ULL, false), BitBoard(283115671060736ULL, false), BitBoard(565681586307584ULL, false), BitBoard(1130822006735872ULL, false), BitBoard(2261102847592448ULL, false), BitBoard(4521664529305600ULL, false), BitBoard(9042787892731904ULL, false), BitBoard(18085034619584512ULL, false), BitBoard(36170077829103616ULL, false), BitBoard(420017753620736ULL, false), BitBoard(699298018886144ULL, false), BitBoard(1260057572672512ULL, false), BitBoard(2381576680245248ULL, false), BitBoard(4624614895390720ULL, false), BitBoard(9110691325681664ULL, false), BitBoard(18082844186263552ULL, false), BitBoard(36167887395782656ULL, false), BitBoard(35466950888980736ULL, false), BitBoard(34905104758997504ULL, false), BitBoard(34344362452452352ULL, false), BitBoard(33222877839362048ULL, false), BitBoard(30979908613181440ULL, false), BitBoard(26493970160820224ULL, false), BitBoard(17522093256097792ULL, false), BitBoard(35607136465616896ULL, false), BitBoard(9079539427579068672ULL, false), BitBoard(8935706818303361536ULL, false), BitBoard(8792156787827803136ULL, false), BitBoard(8505056726876686336ULL, false), BitBoard(7930856604974452736ULL, false), BitBoard(6782456361169985536ULL, false), BitBoard(4485655873561051136ULL, false), BitBoard(9115426935197958144ULL, false)};
 
 //*relevant occupancy set bit count for every square on board for bishop , size = 64
-vector<int> BitBoard::BISHOP_ATTACK_MASK_SET_BIT_COUNT = {6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
+int BitBoard::BISHOP_ATTACK_MASK_SET_BIT_COUNT[64] = {6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
 
 //*relevant occupancy set bit count for every square on board for rook , size = 64
-vector<int> BitBoard::ROOK_ATTACK_MASK_SET_BIT_COUNT = {12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
+int BitBoard::ROOK_ATTACK_MASK_SET_BIT_COUNT[64] = {12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
 
 //*Magic numbers for Bishop , size = 64
-vector<U64> BitBoard::BISHOP_MAGIC_NUMBER = {
+U64 BitBoard::BISHOP_MAGIC_NUMBER[64] = {
     0x40040844404084ULL, 0x2004208a004208ULL, 0x10190041080202ULL, 0x108060845042010ULL, 0x581104180800210ULL, 0x2112080446200010ULL, 0x1080820820060210ULL, 0x3c0808410220200ULL, 0x4050404440404ULL, 0x21001420088ULL, 0x24d0080801082102ULL, 0x1020a0a020400ULL, 0x40308200402ULL, 0x4011002100800ULL, 0x401484104104005ULL, 0x801010402020200ULL, 0x400210c3880100ULL, 0x404022024108200ULL, 0x810018200204102ULL, 0x4002801a02003ULL, 0x85040820080400ULL, 0x810102c808880400ULL, 0xe900410884800ULL, 0x8002020480840102ULL, 0x220200865090201ULL, 0x2010100a02021202ULL, 0x152048408022401ULL, 0x20080002081110ULL, 0x4001001021004000ULL, 0x800040400a011002ULL, 0xe4004081011002ULL, 0x1c004001012080ULL, 0x8004200962a00220ULL, 0x8422100208500202ULL, 0x2000402200300c08ULL, 0x8646020080080080ULL, 0x80020a0200100808ULL, 0x2010004880111000ULL, 0x623000a080011400ULL, 0x42008c0340209202ULL, 0x209188240001000ULL, 0x400408a884001800ULL, 0x110400a6080400ULL, 0x1840060a44020800ULL, 0x90080104000041ULL, 0x201011000808101ULL, 0x1a2208080504f080ULL, 0x8012020600211212ULL, 0x500861011240000ULL, 0x180806108200800ULL, 0x4000020e01040044ULL, 0x300000261044000aULL, 0x802241102020002ULL, 0x20906061210001ULL, 0x5a84841004010310ULL, 0x4010801011c04ULL, 0xa010109502200ULL, 0x4a02012000ULL, 0x500201010098b028ULL, 0x8040002811040900ULL, 0x28000010020204ULL, 0x6000020202d0240ULL, 0x8918844842082200ULL, 0x4010011029020020ULL};
 
 //*Magic numbers for ROOK , size = 64
-vector<U64> BitBoard::ROOK_MAGIC_NUMBER = {
+U64 BitBoard::ROOK_MAGIC_NUMBER[64] = {
     0x8a80104000800020ULL, 0x140002000100040ULL, 0x2801880a0017001ULL, 0x100081001000420ULL, 0x200020010080420ULL, 0x3001c0002010008ULL, 0x8480008002000100ULL, 0x2080088004402900ULL, 0x800098204000ULL, 0x2024401000200040ULL, 0x100802000801000ULL, 0x120800800801000ULL, 0x208808088000400ULL, 0x2802200800400ULL, 0x2200800100020080ULL, 0x801000060821100ULL, 0x80044006422000ULL, 0x100808020004000ULL, 0x12108a0010204200ULL, 0x140848010000802ULL, 0x481828014002800ULL, 0x8094004002004100ULL, 0x4010040010010802ULL, 0x20008806104ULL, 0x100400080208000ULL, 0x2040002120081000ULL, 0x21200680100081ULL, 0x20100080080080ULL, 0x2000a00200410ULL, 0x20080800400ULL, 0x80088400100102ULL, 0x80004600042881ULL, 0x4040008040800020ULL, 0x440003000200801ULL, 0x4200011004500ULL, 0x188020010100100ULL, 0x14800401802800ULL, 0x2080040080800200ULL, 0x124080204001001ULL, 0x200046502000484ULL, 0x480400080088020ULL, 0x1000422010034000ULL, 0x30200100110040ULL, 0x100021010009ULL, 0x2002080100110004ULL, 0x202008004008002ULL, 0x20020004010100ULL, 0x2048440040820001ULL, 0x101002200408200ULL, 0x40802000401080ULL, 0x4008142004410100ULL, 0x2060820c0120200ULL, 0x1001004080100ULL, 0x20c020080040080ULL, 0x2935610830022400ULL, 0x44440041009200ULL, 0x280001040802101ULL, 0x2100190040002085ULL, 0x80c0084100102001ULL, 0x4024081001000421ULL, 0x20030a0244872ULL, 0x12001008414402ULL, 0x2006104900a0804ULL, 0x1004081002402ULL};
 //
 //
@@ -772,18 +766,18 @@ vector<U64> BitBoard::ROOK_MAGIC_NUMBER = {
 
 //*PAWN ATTACK TABLE______________________________________
 // pawnAttacks[playerColor][squareIndex]  , size = 2 * 64 (white or black * 64 squares)
-vector<vector<BitBoard>> BitBoard::PAWN_ATTACK_TABLE =
+BitBoard BitBoard::PAWN_ATTACK_TABLE[2][64] =
     {{BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(2ULL, false), BitBoard(5ULL, false), BitBoard(10ULL, false), BitBoard(20ULL, false), BitBoard(40ULL, false), BitBoard(80ULL, false), BitBoard(160ULL, false), BitBoard(64ULL, false), BitBoard(512ULL, false), BitBoard(1280ULL, false),
       BitBoard(2560ULL, false), BitBoard(5120ULL, false), BitBoard(10240ULL, false), BitBoard(20480ULL, false), BitBoard(40960ULL, false), BitBoard(16384ULL, false), BitBoard(131072ULL, false), BitBoard(327680ULL, false), BitBoard(655360ULL, false), BitBoard(1310720ULL, false), BitBoard(2621440ULL, false), BitBoard(5242880ULL, false), BitBoard(10485760ULL, false), BitBoard(4194304ULL, false), BitBoard(33554432ULL, false), BitBoard(83886080ULL, false), BitBoard(167772160ULL, false), BitBoard(335544320ULL, false), BitBoard(671088640ULL, false), BitBoard(1342177280ULL, false), BitBoard(2684354560ULL, false), BitBoard(1073741824ULL, false), BitBoard(8589934592ULL, false), BitBoard(21474836480ULL, false), BitBoard(42949672960ULL, false), BitBoard(85899345920ULL, false), BitBoard(171798691840ULL, false), BitBoard(343597383680ULL, false), BitBoard(687194767360ULL, false), BitBoard(274877906944ULL, false), BitBoard(2199023255552ULL, false), BitBoard(5497558138880ULL, false), BitBoard(10995116277760ULL, false), BitBoard(21990232555520ULL, false), BitBoard(43980465111040ULL, false), BitBoard(87960930222080ULL, false), BitBoard(175921860444160ULL, false), BitBoard(70368744177664ULL, false), BitBoard(562949953421312ULL, false), BitBoard(1407374883553280ULL, false), BitBoard(2814749767106560ULL, false), BitBoard(5629499534213120ULL, false), BitBoard(11258999068426240ULL, false), BitBoard(22517998136852480ULL, false), BitBoard(45035996273704960ULL, false), BitBoard(18014398509481984ULL, false)},
      {BitBoard(512ULL, false), BitBoard(1280ULL, false), BitBoard(2560ULL, false), BitBoard(5120ULL, false), BitBoard(10240ULL, false), BitBoard(20480ULL, false), BitBoard(40960ULL, false), BitBoard(16384ULL, false), BitBoard(131072ULL, false), BitBoard(327680ULL, false), BitBoard(655360ULL, false), BitBoard(1310720ULL, false), BitBoard(2621440ULL, false), BitBoard(5242880ULL, false), BitBoard(10485760ULL, false), BitBoard(4194304ULL, false), BitBoard(33554432ULL, false), BitBoard(83886080ULL, false), BitBoard(167772160ULL, false), BitBoard(335544320ULL, false), BitBoard(671088640ULL, false), BitBoard(1342177280ULL, false), BitBoard(2684354560ULL, false), BitBoard(1073741824ULL, false), BitBoard(8589934592ULL, false), BitBoard(21474836480ULL, false), BitBoard(42949672960ULL, false), BitBoard(85899345920ULL, false), BitBoard(171798691840ULL, false), BitBoard(343597383680ULL, false), BitBoard(687194767360ULL, false), BitBoard(274877906944ULL, false), BitBoard(2199023255552ULL, false), BitBoard(5497558138880ULL, false), BitBoard(10995116277760ULL, false), BitBoard(21990232555520ULL, false), BitBoard(43980465111040ULL, false), BitBoard(87960930222080ULL, false), BitBoard(175921860444160ULL, false), BitBoard(70368744177664ULL, false), BitBoard(562949953421312ULL, false), BitBoard(1407374883553280ULL, false), BitBoard(2814749767106560ULL, false), BitBoard(5629499534213120ULL, false), BitBoard(11258999068426240ULL, false), BitBoard(22517998136852480ULL, false), BitBoard(45035996273704960ULL, false), BitBoard(18014398509481984ULL, false), BitBoard(144115188075855872ULL, false), BitBoard(360287970189639680ULL, false), BitBoard(720575940379279360ULL, false), BitBoard(1441151880758558720ULL, false), BitBoard(2882303761517117440ULL, false), BitBoard(5764607523034234880ULL, false), BitBoard(11529215046068469760ULL, false), BitBoard(4611686018427387904ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false)}};
 
 //*KNIGHT ATTACK TABLE______________________________________
 // knightAttacks[squareIndex] , size = 64
-vector<BitBoard> BitBoard::KNIGHT_ATTACK_TABLE =
+BitBoard BitBoard::KNIGHT_ATTACK_TABLE[64] =
     {BitBoard(132096ULL, false), BitBoard(329728ULL, false), BitBoard(659712ULL, false), BitBoard(1319424ULL, false), BitBoard(2638848ULL, false), BitBoard(5277696ULL, false), BitBoard(10489856ULL, false), BitBoard(4202496ULL, false), BitBoard(33816580ULL, false), BitBoard(84410376ULL, false), BitBoard(168886289ULL, false), BitBoard(337772578ULL, false), BitBoard(675545156ULL, false), BitBoard(1351090312ULL, false), BitBoard(2685403152ULL, false), BitBoard(1075839008ULL, false), BitBoard(8657044482ULL, false), BitBoard(21609056261ULL, false), BitBoard(43234889994ULL, false), BitBoard(86469779988ULL, false), BitBoard(172939559976ULL, false), BitBoard(345879119952ULL, false), BitBoard(687463207072ULL, false), BitBoard(275414786112ULL, false), BitBoard(2216203387392ULL, false), BitBoard(5531918402816ULL, false), BitBoard(11068131838464ULL, false), BitBoard(22136263676928ULL, false), BitBoard(44272527353856ULL, false), BitBoard(88545054707712ULL, false), BitBoard(175990581010432ULL, false), BitBoard(70506185244672ULL, false), BitBoard(567348067172352ULL, false), BitBoard(1416171111120896ULL, false), BitBoard(2833441750646784ULL, false), BitBoard(5666883501293568ULL, false), BitBoard(11333767002587136ULL, false), BitBoard(22667534005174272ULL, false), BitBoard(45053588738670592ULL, false), BitBoard(18049583422636032ULL, false), BitBoard(145241105196122112ULL, false), BitBoard(362539804446949376ULL, false), BitBoard(725361088165576704ULL, false), BitBoard(1450722176331153408ULL, false), BitBoard(2901444352662306816ULL, false), BitBoard(5802888705324613632ULL, false), BitBoard(11533718717099671552ULL, false), BitBoard(4620693356194824192ULL, false), BitBoard(288234782788157440ULL, false), BitBoard(576469569871282176ULL, false), BitBoard(1224997833292120064ULL, false), BitBoard(2449995666584240128ULL, false), BitBoard(4899991333168480256ULL, false), BitBoard(9799982666336960512ULL, false), BitBoard(1152939783987658752ULL, false), BitBoard(2305878468463689728ULL, false), BitBoard(1128098930098176ULL, false), BitBoard(2257297371824128ULL, false), BitBoard(4796069720358912ULL, false), BitBoard(9592139440717824ULL, false), BitBoard(19184278881435648ULL, false), BitBoard(38368557762871296ULL, false), BitBoard(4679521487814656ULL, false), BitBoard(9077567998918656ULL, false)};
 
 // kingAttacks[squareIndex] , size = 64
-vector<BitBoard> BitBoard::KING_ATTACK_TABLE = {BitBoard(770ULL, false), BitBoard(1797ULL, false), BitBoard(3594ULL, false), BitBoard(7188ULL, false), BitBoard(14376ULL, false), BitBoard(28752ULL, false), BitBoard(57504ULL, false), BitBoard(49216ULL, false), BitBoard(197123ULL, false), BitBoard(460039ULL, false), BitBoard(920078ULL, false), BitBoard(1840156ULL, false), BitBoard(3680312ULL, false), BitBoard(7360624ULL, false), BitBoard(14721248ULL, false), BitBoard(12599488ULL, false), BitBoard(50463488ULL, false), BitBoard(117769984ULL, false), BitBoard(235539968ULL, false), BitBoard(471079936ULL, false), BitBoard(942159872ULL, false), BitBoard(1884319744ULL, false), BitBoard(3768639488ULL, false), BitBoard(3225468928ULL, false), BitBoard(12918652928ULL, false), BitBoard(30149115904ULL, false), BitBoard(60298231808ULL, false), BitBoard(120596463616ULL, false), BitBoard(241192927232ULL, false), BitBoard(482385854464ULL, false), BitBoard(964771708928ULL, false), BitBoard(825720045568ULL, false), BitBoard(3307175149568ULL, false), BitBoard(7718173671424ULL, false), BitBoard(15436347342848ULL, false), BitBoard(30872694685696ULL, false), BitBoard(61745389371392ULL, false), BitBoard(123490778742784ULL, false), BitBoard(246981557485568ULL, false), BitBoard(211384331665408ULL, false), BitBoard(846636838289408ULL, false), BitBoard(1975852459884544ULL, false), BitBoard(3951704919769088ULL, false), BitBoard(7903409839538176ULL, false), BitBoard(15806819679076352ULL, false), BitBoard(31613639358152704ULL, false), BitBoard(63227278716305408ULL, false), BitBoard(54114388906344448ULL, false), BitBoard(216739030602088448ULL, false), BitBoard(505818229730443264ULL, false), BitBoard(1011636459460886528ULL, false), BitBoard(2023272918921773056ULL, false), BitBoard(4046545837843546112ULL, false), BitBoard(8093091675687092224ULL, false), BitBoard(16186183351374184448ULL, false), BitBoard(13853283560024178688ULL, false), BitBoard(144959613005987840ULL, false), BitBoard(362258295026614272ULL, false), BitBoard(724516590053228544ULL, false), BitBoard(1449033180106457088ULL, false), BitBoard(2898066360212914176ULL, false), BitBoard(5796132720425828352ULL, false), BitBoard(11592265440851656704ULL, false), BitBoard(4665729213955833856ULL, false)};
+BitBoard BitBoard::KING_ATTACK_TABLE[64] = {BitBoard(770ULL, false), BitBoard(1797ULL, false), BitBoard(3594ULL, false), BitBoard(7188ULL, false), BitBoard(14376ULL, false), BitBoard(28752ULL, false), BitBoard(57504ULL, false), BitBoard(49216ULL, false), BitBoard(197123ULL, false), BitBoard(460039ULL, false), BitBoard(920078ULL, false), BitBoard(1840156ULL, false), BitBoard(3680312ULL, false), BitBoard(7360624ULL, false), BitBoard(14721248ULL, false), BitBoard(12599488ULL, false), BitBoard(50463488ULL, false), BitBoard(117769984ULL, false), BitBoard(235539968ULL, false), BitBoard(471079936ULL, false), BitBoard(942159872ULL, false), BitBoard(1884319744ULL, false), BitBoard(3768639488ULL, false), BitBoard(3225468928ULL, false), BitBoard(12918652928ULL, false), BitBoard(30149115904ULL, false), BitBoard(60298231808ULL, false), BitBoard(120596463616ULL, false), BitBoard(241192927232ULL, false), BitBoard(482385854464ULL, false), BitBoard(964771708928ULL, false), BitBoard(825720045568ULL, false), BitBoard(3307175149568ULL, false), BitBoard(7718173671424ULL, false), BitBoard(15436347342848ULL, false), BitBoard(30872694685696ULL, false), BitBoard(61745389371392ULL, false), BitBoard(123490778742784ULL, false), BitBoard(246981557485568ULL, false), BitBoard(211384331665408ULL, false), BitBoard(846636838289408ULL, false), BitBoard(1975852459884544ULL, false), BitBoard(3951704919769088ULL, false), BitBoard(7903409839538176ULL, false), BitBoard(15806819679076352ULL, false), BitBoard(31613639358152704ULL, false), BitBoard(63227278716305408ULL, false), BitBoard(54114388906344448ULL, false), BitBoard(216739030602088448ULL, false), BitBoard(505818229730443264ULL, false), BitBoard(1011636459460886528ULL, false), BitBoard(2023272918921773056ULL, false), BitBoard(4046545837843546112ULL, false), BitBoard(8093091675687092224ULL, false), BitBoard(16186183351374184448ULL, false), BitBoard(13853283560024178688ULL, false), BitBoard(144959613005987840ULL, false), BitBoard(362258295026614272ULL, false), BitBoard(724516590053228544ULL, false), BitBoard(1449033180106457088ULL, false), BitBoard(2898066360212914176ULL, false), BitBoard(5796132720425828352ULL, false), BitBoard(11592265440851656704ULL, false), BitBoard(4665729213955833856ULL, false)};
 
 //
 //

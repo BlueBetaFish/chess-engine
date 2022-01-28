@@ -32,7 +32,7 @@ Engine engine("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
 // //* returns move object from moveString(algebric notation) (e.g. "e7e8q")
 Move parseMove(const string &moveString)
 {
-    vector<Move> moveList;
+    MoveList moveList;
 
     int currPlayer = engine.getCurrentPlayer();
 
@@ -69,9 +69,12 @@ Move parseMove(const string &moveString)
         }
     }
 
+    int moveListSize = moveList.size();
     //*check if the move is valid
-    for (Move move : moveList)
+    for (int i = 0; i < moveListSize; i++)
     {
+        Move move = moveList[i];
+
         if (move.fromSquare == fromSquare && move.toSquare == toSquare && move.promotedPiece == promotedPiece)
             return move;
     }
@@ -268,18 +271,21 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    bool debugMode = false;
+    bool debugMode = true;
 
     if (debugMode)
     {
 
-        Engine engine("rnbqkbnr/pppppppp/8/4N3/3P4/8/PPP1PPPP/RNBQKB1R b KQkq - 0 1 ");
+        Engine engine(START_POSITION_FEN);
 
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
         int depthLimit = 5;
-        // long long numberOfLeaves = engine.perft_test(depthLimit);
+        cout << "\nEnter depthLimit : ";
+        cin >> depthLimit;
+
+        long long numberOfLeaves = engine.perft_test(depthLimit);
 
         cout << "\nScore of current position = " << engine.staticEvaluation();
 

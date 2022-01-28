@@ -14,4 +14,4 @@
 #endif
 
 //*TODO: comment it after testing to disable the assert() calls
-#define NDEBUG
+// #define NDEBUG
