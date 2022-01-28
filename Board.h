@@ -12,6 +12,8 @@ using namespace std;
 
 class Board
 {
+
+protected:
     //*bitboards for each piece of each color
     // BitBoard whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing;
     // BitBoard blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing;
@@ -392,6 +394,11 @@ public:
         return false;
     }
 
+    bool isCurrentPlayerKingInCheck()
+    {
+        int kingSquareIndex = this->pieceBitBoards[this->currentPlayer == WHITE ? Piece::K : Piece::k].getFirstLeastSignificantBitIndexFromRight();
+        return this->isGivenSquareAttackedByGivenPlayer(kingSquareIndex, Piece::getOppositeColor(this->currentPlayer));
+    }
     //*unoptimized
     BitBoard getAllAttackedSquaresByGivenPlayer(int attackerPlayer)
     {

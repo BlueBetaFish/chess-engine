@@ -273,13 +273,15 @@ int main()
     if (debugMode)
     {
 
-        Engine engine("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ");
+        Engine engine("rnbqkbnr/pppppppp/8/4N3/3P4/8/PPP1PPPP/RNBQKB1R b KQkq - 0 1 ");
 
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
         int depthLimit = 5;
-        long long numberOfLeaves = engine.perft_test(depthLimit);
+        // long long numberOfLeaves = engine.perft_test(depthLimit);
+
+        cout << "\nScore of current position = " << engine.staticEvaluation();
 
         cout << endl
              << endl
