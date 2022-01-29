@@ -144,7 +144,6 @@ public:
         return score;
     }
 
-    //*TODO: ply
     MinimaxReturn minimax(int depthLimit, int alpha, int beta)
     {
         if (depthLimit == 0)
@@ -200,8 +199,8 @@ public:
                 //*if king is in check, then it is checkmate
                 if (inCheck)
                 {
-                    //*TODO:
-                    return {-49000 + ply, Move::INVALID_MOVE};
+                    //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
+                    return {-49000 - depthLimit, Move::INVALID_MOVE};
                 }
                 //*stalemate
                 else
@@ -258,8 +257,8 @@ public:
                 //*if king is in check, then it is checkmate
                 if (inCheck)
                 {
-                    //*TODO:
-                    return {49000 - ply, Move::INVALID_MOVE};
+                    //*IMPORTANT : To return the nearest checkmate if there are checkmates at multiple depths , add the depthLimit to get the nearest checkmate
+                    return {49000 + depthLimit, Move::INVALID_MOVE};
                 }
                 //*stalemate
                 else
