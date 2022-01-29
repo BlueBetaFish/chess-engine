@@ -281,13 +281,12 @@ int main()
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
-        int depthLimit = 5;
-        cout << "\nEnter depthLimit : ";
-        cin >> depthLimit;
+        int depthLimit = 1;
+        // cout << "\nEnter depthLimit : ";
+        // cin >> depthLimit;
 
-        long long numberOfLeaves = engine.perft_test(depthLimit);
-
-        cout << "\nScore of current position = " << engine.staticEvaluation();
+        // long long numberOfLeaves = engine.perft_test(depthLimit);
+        engine.searchPosition(depthLimit);
 
         cout << endl
              << endl

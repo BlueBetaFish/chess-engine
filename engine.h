@@ -18,6 +18,7 @@ struct MinimaxReturn
 {
     int bestScore;
     Move bestMove;
+    long long nodeCount;
 };
 
 class Engine : public Board
@@ -108,7 +109,7 @@ public:
     }
 
     //*TODO: to be improved
-    //*TODO: score is positive if white has advantage, and score is neg if black has advantage( different from BBC, it returened score as positive if current player had advantage)
+    //*TODO: score is positive if current has advantage
     inline int staticEvaluation()
     {
         int score = 0;
@@ -141,135 +142,146 @@ public:
             }
         }
 
-        return score;
+        return this->currentPlayer == WHITE ? score : -score;
     }
 
-    MinimaxReturn minimax(int depthLimit, int alpha, int beta)
+    /*
+     *   Returns the max static evaluation score from the initial position until the position is quiet (i.e, there is no more captures)
+     */
+    MinimaxReturn inline quiescenceSearch(int alpha, int beta)
+    {
+        int currScore = this->staticEvaluation();
+
+        // cout << "\nBoard pos:\n";
+        // this->printBoard();
+
+        //*TODO: codeMonkeyKing was returning beta here dunno why , check later
+        if (currScore >= beta)
+            return {beta, Move::INVALID_MOVE, 1};
+
+        alpha = max(alpha, currScore);
+
+        long long nodeCount = 0;
+
+        //*generate all pseudo legal moves
+        MoveList moveList;
+        this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
+
+        Engine backUpCopyOfBoard = *this;
+
+        int moveListSize = moveList.size();
+
+        int maxScore = currScore;
+
+        for (int i = 0; i < moveListSize; i++)
+        {
+            Move move = moveList[i];
+            //*if making this move lets opponent capture our king , dont consider it
+
+            //*--------------------------------------------------IMPORTANT: only make the capture moves in QUIESCENCE SEARCH--------------------------------------------------
+            if (!this->makeMove(move, true))
+                continue;
+
+            MinimaxReturn currReturnedVal = this->quiescenceSearch(-beta, -alpha);
+            int currScore = -currReturnedVal.bestScore;
+
+            //*restore board
+            *this = backUpCopyOfBoard;
+
+            //*add new nodeCoutns
+            nodeCount += currReturnedVal.nodeCount;
+
+            if (currScore > maxScore)
+            {
+                maxScore = alpha = currScore;
+            }
+
+            //*TODO: codeMonkeyKing is returning beta here dunno why check alter
+            if (alpha >= beta)
+                return {beta, Move::INVALID_MOVE, nodeCount};
+        }
+
+        //*return best score
+        return {alpha, Move::INVALID_MOVE, nodeCount};
+    }
+
+    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta)
     {
         if (depthLimit == 0)
-            return {this->staticEvaluation(), Move::INVALID_MOVE};
+        {
+            // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
+
+            MinimaxReturn quiescenceSearchResult = this->quiescenceSearch(alpha, beta);
+            return {quiescenceSearchResult.bestScore, Move::INVALID_MOVE, quiescenceSearchResult.nodeCount};
+        }
 
         long long legalMoves = 0;
         int ply = 0;
 
+        //*TODO: move it to the section where inCheck is used, otherwise bestMove might be returned before reaching that section , and i am calling this function unnecessarily here
         bool inCheck = this->isCurrentPlayerKingInCheck();
 
         Move bestMove = Move::INVALID_MOVE;
+        long long nodeCount = 0;
 
-        if (this->currentPlayer == WHITE)
+        int maxScore = INT_MIN;
+
+        //*generate all pseudo legal moves
+        MoveList moveList;
+        this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
+
+        Engine backUpCopyOfBoard = *this;
+
+        int moveListSize = moveList.size();
+
+        for (int i = 0; i < moveListSize; i++)
         {
-            int maxScore = INT_MIN;
+            Move move = moveList[i];
+            //*if making this move lets opponent capture our king , dont consider it
+            if (!this->makeMove(move))
+                continue;
 
-            //*generate all pseudo legal moves
-            MoveList moveList;
-            this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
+            legalMoves++;
+            ply++;
 
-            Engine backUpCopyOfBoard = *this;
+            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha);
+            int currScore = -currReturnedVal.bestScore;
 
-            int moveListSize = moveList.size();
+            //*restore board
+            *this = backUpCopyOfBoard;
 
-            for (int i = 0; i < moveListSize; i++)
+            //*add new nodeCoutns
+            nodeCount += currReturnedVal.nodeCount;
+
+            if (currScore > maxScore)
             {
-                Move move = moveList[i];
-                //*if making this move lets opponent capture our king , dont consider it
-                if (!this->makeMove(move))
-                    continue;
-
-                legalMoves++;
-                ply++;
-
-                MinimaxReturn currReturnedVal = this->minimax(depthLimit - 1, alpha, beta);
-
-                //*restore board
-                *this = backUpCopyOfBoard;
-
-                if (currReturnedVal.bestScore > maxScore)
-                {
-                    maxScore = alpha = currReturnedVal.bestScore;
-                    bestMove = move; //*current move is the best move
-                }
-
-                if (alpha >= beta)
-                    return {maxScore, bestMove};
+                maxScore = alpha = currScore;
+                bestMove = move; //*current move is the best move
             }
 
-            //*if current player doesnt have any legal moves
-            if (legalMoves == 0)
-            {
-                //*if king is in check, then it is checkmate
-                if (inCheck)
-                {
-                    //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
-                    return {-49000 - depthLimit, Move::INVALID_MOVE};
-                }
-                //*stalemate
-                else
-                {
-                    return {0, Move::INVALID_MOVE};
-                }
-            }
-
-            //*return best move
-            return {maxScore, bestMove};
+            //*TODO: codeMonkeyKing was returning beta here dunno why
+            if (alpha >= beta)
+                return {beta, bestMove, nodeCount};
         }
 
-        //*for black
-        else
+        //*if current player doesnt have any legal moves
+        if (legalMoves == 0)
         {
-            int minScore = INT_MAX;
-
-            //*generate all pseudo legal moves
-            MoveList moveList;
-            this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
-
-            Engine backUpCopyOfBoard = *this;
-
-            int moveListSize = moveList.size();
-            for (int i = 0; i < moveListSize; i++)
+            //*if king is in check, then it is checkmate
+            if (inCheck)
             {
-                Move move = moveList[i];
-
-                //*if making this move lets opponent capture our king , dont consider it
-                if (!this->makeMove(move))
-                    continue;
-
-                legalMoves++;
-                ply++;
-
-                MinimaxReturn currReturnedVal = this->minimax(depthLimit - 1, alpha, beta);
-
-                //*restore board
-                *this = backUpCopyOfBoard;
-
-                if (currReturnedVal.bestScore < minScore)
-                {
-                    minScore = beta = currReturnedVal.bestScore;
-                    bestMove = move; //*current move is the best move
-                }
-
-                if (alpha >= beta)
-                    return {minScore, bestMove};
+                //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
+                return {-49000 - depthLimit, Move::INVALID_MOVE, nodeCount};
             }
-
-            //*if current player doesnt have any legal moves
-            if (legalMoves == 0)
+            //*stalemate
+            else
             {
-                //*if king is in check, then it is checkmate
-                if (inCheck)
-                {
-                    //*IMPORTANT : To return the nearest checkmate if there are checkmates at multiple depths , add the depthLimit to get the nearest checkmate
-                    return {49000 + depthLimit, Move::INVALID_MOVE};
-                }
-                //*stalemate
-                else
-                {
-                    return {0, Move::INVALID_MOVE};
-                }
+                return {0, Move::INVALID_MOVE, nodeCount};
             }
-
-            //*return best move
-            return {minScore, bestMove};
         }
+
+        //*return best move
+        return {alpha, bestMove, nodeCount};
     }
 
     //*TODO:
@@ -277,7 +289,7 @@ public:
     void inline searchPosition(int depth)
     {
 
-        MinimaxReturn res = minimax(depth, -50000, 50000);
+        MinimaxReturn res = negamax(depth, -50000, 50000);
 
         if (res.bestMove == Move::INVALID_MOVE)
         {
@@ -286,8 +298,7 @@ public:
         }
         else
         {
-            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes "
-                 << "-1" << endl;
+            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount << endl;
             cout << "bestmove " << res.bestMove.getUCIMove() << endl;
         }
     }
