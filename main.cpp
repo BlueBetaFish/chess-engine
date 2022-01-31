@@ -13,6 +13,10 @@ using namespace std;
 //*helper functions
 #include "helperFunctions.h"
 
+#define START_POSITION_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - "
+#define PRUNING_TEST_POSITION "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+#define TRICKY_POSITION_FEN "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+
 //*must be called at begining
 void initializeTables()
 {
@@ -23,7 +27,7 @@ void initializeTables()
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
-Engine engine("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+Engine engine(START_POSITION_FEN);
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 
@@ -276,17 +280,32 @@ int main()
     if (debugMode)
     {
 
-        Engine engine(START_POSITION_FEN);
+        Engine engine(TRICKY_POSITION_FEN);
 
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
-        int depthLimit = 1;
+        int depthLimit = 7;
         // cout << "\nEnter depthLimit : ";
         // cin >> depthLimit;
 
         // long long numberOfLeaves = engine.perft_test(depthLimit);
+
+        long startTime = Engine::getTimeInMilliSeconds();
         engine.searchPosition(depthLimit);
+        long endTime = Engine::getTimeInMilliSeconds();
+        cout << "\n\nTime required : " << (endTime - startTime) << " ms";
+
+        // MoveList moveList;
+        // engine.generateAllPseudoLegalMovesOfGivenPlayer(engine.getCurrentPlayer(), moveList);
+        // engine.sortMoveList(moveList);
+
+        // for (int i = 0; i < moveList.size(); i++)
+        // {
+        //     int moveScore = engine.getMoveScore(moveList[i]);
+        //     moveList[i].print();
+        //     cout << "MoveScore : " << moveScore << endl;
+        // }
 
         cout << endl
              << endl

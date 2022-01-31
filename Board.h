@@ -45,7 +45,7 @@ public:
         return this->currentPlayer;
     }
 
-    // *get the piece at given square
+    // *get the piece at given square (returns Piece::EMPTY_PIECE if there is no piece on the squareIndex)
     int inline getPieceAtSquare(int squareIndex)
     {
         for (int piece = Piece::P; piece <= Piece::k; piece++)

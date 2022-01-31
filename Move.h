@@ -8,6 +8,7 @@
 
 using namespace std;
 
+//*TODO: also include the capturedPiece
 class Move
 {
 public:

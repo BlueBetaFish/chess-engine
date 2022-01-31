@@ -12,8 +12,6 @@ using namespace std;
 //*helper functions
 #include "helperFunctions.h"
 
-#define START_POSITION_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - "
-
 struct MinimaxReturn
 {
     int bestScore;
@@ -31,6 +29,9 @@ class Engine : public Board
 
     //*mirrorIndex[squareIndex]
     static int mirrorIndex[128];
+
+    //*Most valuable victim , less valuable attacker score table for move ordering (stores the score of a move to order them from best to worst)
+    static int MVV_LVA_MOVE_SCORE[12][12];
 
 public:
     Engine()
@@ -82,6 +83,86 @@ public:
         gettimeofday(&time_value, NULL);
         return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
 #endif
+    }
+
+    //*retruns the relative score of a move so that we can order them from good to bad
+    int inline getMoveScore(const Move &move)
+    {
+        //*if move is capture move , then find the MVV_LVA_MOVE_SCORE value
+        if (move.captureFlag)
+        {
+            //*TODO: also include the capturedPiece in move class, so that we dont need to call this function to get the captured piece here
+            int capturedPiece = Piece::EMPTY_PIECE;
+
+            //*if the move was enpassant , then toSquare would be empty, so assign pawn
+            if (move.enPassantFlag)
+            {
+                capturedPiece = this->currentPlayer == WHITE ? Piece::p : Piece::P;
+            }
+            else
+            {
+                int startPiece = -1, endPiece = -1;
+                if (this->currentPlayer == WHITE)
+                {
+                    startPiece = Piece::p;
+                    endPiece = Piece::k;
+                }
+                else
+                {
+                    startPiece = Piece::P;
+                    endPiece = Piece::K;
+                }
+
+                for (int piece = startPiece; piece <= endPiece; piece++)
+                {
+                    if (this->pieceBitBoards[piece].getBitAt(move.toSquare) == 1)
+                    {
+                        capturedPiece = piece;
+                        break;
+                    }
+                }
+            }
+
+            // cout << "\nattacker : " << Piece::getASCIICodeOfPiece(move.pieceMoved) << ", captured Piece : " << Piece::getASCIICodeOfPiece(capturedPiece);
+
+            return Engine::MVV_LVA_MOVE_SCORE[move.pieceMoved][capturedPiece];
+        }
+        //*TODO:for quiet move
+        else
+        {
+        }
+
+        return 0;
+    }
+
+    inline void sortMoveList(MoveList &moveList)
+    {
+        int moveListSize = moveList.size();
+
+        //*store the scores of all moves
+        int moveScores[moveListSize];
+        for (int i = 0; i < moveListSize; i++)
+            moveScores[i] = this->getMoveScore(moveList[i]);
+
+        //*-----------------INSERTION SORT-------------------------------//
+        for (int i = 1; i < moveListSize; i++)
+        {
+            int j = i - 1;
+            int x = moveScores[i];
+            Move m = moveList[i];
+
+            //*shifting
+            while (j >= 0 && moveScores[j] < x)
+            {
+                moveScores[j + 1] = moveScores[j];
+                moveList[j + 1] = moveList[j];
+
+                j--;
+            }
+
+            moveScores[j + 1] = x;
+            moveList[j + 1] = m;
+        }
     }
 
     /*
@@ -167,6 +248,9 @@ public:
         MoveList moveList;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
+        //*sort moves from good to bad for more alpha beta pruning
+        this->sortMoveList(moveList);
+
         Engine backUpCopyOfBoard = *this;
 
         int moveListSize = moveList.size();
@@ -221,6 +305,12 @@ public:
         //*TODO: move it to the section where inCheck is used, otherwise bestMove might be returned before reaching that section , and i am calling this function unnecessarily here
         bool inCheck = this->isCurrentPlayerKingInCheck();
 
+        //*TODO: didnt understand properly , research later
+
+        //*if current player is in check , increase search depth if the king has been exposed into a check to avoid being mated
+        if (inCheck)
+            depthLimit++;
+
         Move bestMove = Move::INVALID_MOVE;
         long long nodeCount = 0;
 
@@ -229,6 +319,9 @@ public:
         //*generate all pseudo legal moves
         MoveList moveList;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
+
+        //*sort moves from good to bad for more alpha beta pruning
+        this->sortMoveList(moveList);
 
         Engine backUpCopyOfBoard = *this;
 
@@ -494,5 +587,37 @@ int Engine::mirrorIndex[128] = {
     a6, b6, c6, d6, e6, f6, g6, h6,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a8, b8, c8, d8, e8, f8, g8, h8
+
+};
+
+/*
+                Pawn Knight Bishop   Rook  Queen   King (Victims)
+
+    Pawn        105    205    305    405    505    605
+    Knight      104    204    304    404    504    604
+    Bishop      103    203    303    403    503    603
+    Rook        102    202    302    402    502    602
+    Queen       101    201    301    401    501    601
+    King        100    200    300    400    500    600
+(Attackers)
+
+*/
+//* MVV_LVA_MOVE_SCORE[attacker_piece][victim_piece] = returns the relative score of a move which captures the victim_piece using attacker_piece
+int Engine::MVV_LVA_MOVE_SCORE[12][12] =
+    {
+
+        105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605,
+        104, 204, 304, 404, 504, 604, 104, 204, 304, 404, 504, 604,
+        103, 203, 303, 403, 503, 603, 103, 203, 303, 403, 503, 603,
+        102, 202, 302, 402, 502, 602, 102, 202, 302, 402, 502, 602,
+        101, 201, 301, 401, 501, 601, 101, 201, 301, 401, 501, 601,
+        100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600,
+
+        105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605,
+        104, 204, 304, 404, 504, 604, 104, 204, 304, 404, 504, 604,
+        103, 203, 303, 403, 503, 603, 103, 203, 303, 403, 503, 603,
+        102, 202, 302, 402, 502, 602, 102, 202, 302, 402, 502, 602,
+        101, 201, 301, 401, 501, 601, 101, 201, 301, 401, 501, 601,
+        100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600
 
 };
