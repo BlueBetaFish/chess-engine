@@ -12,6 +12,8 @@ using namespace std;
 //*helper functions
 #include "helperFunctions.h"
 
+#define MAX_DEPTH 64 //*we assume we will search upto max 64 depth
+
 struct MinimaxReturn
 {
     int bestScore;
@@ -32,6 +34,14 @@ class Engine : public Board
 
     //*Most valuable victim , less valuable attacker score table for move ordering (stores the score of a move to order them from best to worst)
     static int MVV_LVA_MOVE_SCORE[12][12];
+
+    //*Killer move is a dangerous quiet move which kills opponent's most of the other moves  to be expanded (example link : https://rustic-chess.org/search/ordering/killers.html)
+    //*KILLER_MOVE[id][ply] ---> most of the engines store 2 killer moves for each ply for efficiency
+    static Move KILLER_MOVES[2][MAX_DEPTH];
+
+    //*SCORE OF HISTORY MOVES : //*TODO: gotta comment properly later
+    //*HISTORY_MOVES[piece][square]
+    static int HISTORY_MOVE_SCORE[12][64];
 
 public:
     Engine()
@@ -86,7 +96,7 @@ public:
     }
 
     //*retruns the relative score of a move so that we can order them from good to bad
-    int inline getMoveScore(const Move &move)
+    int inline getMoveScore(const Move &move, int ply)
     {
         //*if move is capture move , then find the MVV_LVA_MOVE_SCORE value
         if (move.captureFlag)
@@ -125,24 +135,39 @@ public:
 
             // cout << "\nattacker : " << Piece::getASCIICodeOfPiece(move.pieceMoved) << ", captured Piece : " << Piece::getASCIICodeOfPiece(capturedPiece);
 
-            return Engine::MVV_LVA_MOVE_SCORE[move.pieceMoved][capturedPiece];
+            //*because quiet killer move gets score of 9000, so to assign captures  greater weight, add 10,000
+            return 10000 + Engine::MVV_LVA_MOVE_SCORE[move.pieceMoved][capturedPiece];
         }
         //*TODO:for quiet move
         else
         {
+            //*get score of 1st killer move, if exists
+            if (Engine::KILLER_MOVES[0][ply] == move)
+            {
+                return 9000;
+            }
+
+            //*get score of 1st killer move, if exists
+            if (Engine::KILLER_MOVES[1][ply] == move)
+            {
+                return 8000;
+            }
+
+            //*get score of history move
+            return Engine::HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare];
         }
 
         return 0;
     }
 
-    inline void sortMoveList(MoveList &moveList)
+    inline void sortMoveList(MoveList &moveList, int ply)
     {
         int moveListSize = moveList.size();
 
         //*store the scores of all moves
         int moveScores[moveListSize];
         for (int i = 0; i < moveListSize; i++)
-            moveScores[i] = this->getMoveScore(moveList[i]);
+            moveScores[i] = this->getMoveScore(moveList[i], ply);
 
         //*-----------------INSERTION SORT-------------------------------//
         for (int i = 1; i < moveListSize; i++)
@@ -229,7 +254,7 @@ public:
     /*
      *   Returns the max static evaluation score from the initial position until the position is quiet (i.e, there is no more captures)
      */
-    MinimaxReturn inline quiescenceSearch(int alpha, int beta)
+    MinimaxReturn inline quiescenceSearch(int alpha, int beta, int ply)
     {
         int currScore = this->staticEvaluation();
 
@@ -249,7 +274,7 @@ public:
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
-        this->sortMoveList(moveList);
+        this->sortMoveList(moveList, ply);
 
         Engine backUpCopyOfBoard = *this;
 
@@ -266,7 +291,7 @@ public:
             if (!this->makeMove(move, true))
                 continue;
 
-            MinimaxReturn currReturnedVal = this->quiescenceSearch(-beta, -alpha);
+            MinimaxReturn currReturnedVal = this->quiescenceSearch(-beta, -alpha, ply + 1);
             int currScore = -currReturnedVal.bestScore;
 
             //*restore board
@@ -289,25 +314,24 @@ public:
         return {alpha, Move::INVALID_MOVE, nodeCount};
     }
 
-    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta)
+    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply)
     {
         if (depthLimit == 0)
         {
             // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
 
-            MinimaxReturn quiescenceSearchResult = this->quiescenceSearch(alpha, beta);
+            MinimaxReturn quiescenceSearchResult = this->quiescenceSearch(alpha, beta, ply);
             return {quiescenceSearchResult.bestScore, Move::INVALID_MOVE, quiescenceSearchResult.nodeCount};
         }
 
         long long legalMoves = 0;
-        int ply = 0;
 
         //*TODO: move it to the section where inCheck is used, otherwise bestMove might be returned before reaching that section , and i am calling this function unnecessarily here
         bool inCheck = this->isCurrentPlayerKingInCheck();
 
         //*TODO: didnt understand properly , research later
 
-        //*if current player is in check , increase search depth if the king has been exposed into a check to avoid being mated
+        //*if current player is in check(it is an interesting position and cant be ignored) , increase search depth if the king has been exposed into a check to avoid being mated
         if (inCheck)
             depthLimit++;
 
@@ -321,7 +345,7 @@ public:
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
-        this->sortMoveList(moveList);
+        this->sortMoveList(moveList, ply);
 
         Engine backUpCopyOfBoard = *this;
 
@@ -335,9 +359,8 @@ public:
                 continue;
 
             legalMoves++;
-            ply++;
 
-            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha);
+            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1);
             int currScore = -currReturnedVal.bestScore;
 
             //*restore board
@@ -348,13 +371,31 @@ public:
 
             if (currScore > maxScore)
             {
+                //*if it is a quiet move, consider its HISTORY_MOVE_SCORE
+                if (!move.captureFlag)
+                {
+                    //*store history move score
+                    Engine::HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare] += depthLimit;
+                }
+
                 maxScore = alpha = currScore;
                 bestMove = move; //*current move is the best move
             }
 
             //*TODO: codeMonkeyKing was returning beta here dunno why
+            //*beta cutoff
             if (alpha >= beta)
+            {
+                //*for quiet move, store it as killer move
+                if (!move.captureFlag)
+                {
+                    //*store this move as killer move, since it caused the beta cut off , and also make the prev 1st killer move as 2nd killer move
+                    Engine::KILLER_MOVES[1][ply] = Engine::KILLER_MOVES[0][ply];
+                    Engine::KILLER_MOVES[0][ply] = move;
+                }
+
                 return {beta, bestMove, nodeCount};
+            }
         }
 
         //*if current player doesnt have any legal moves
@@ -382,7 +423,7 @@ public:
     void inline searchPosition(int depth)
     {
 
-        MinimaxReturn res = negamax(depth, -50000, 50000);
+        MinimaxReturn res = negamax(depth, -50000, 50000, 0);
 
         if (res.bestMove == Move::INVALID_MOVE)
         {
@@ -621,3 +662,9 @@ int Engine::MVV_LVA_MOVE_SCORE[12][12] =
         100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600
 
 };
+
+//*KILLER_MOVE[id][ply] ---> most of the engines store 2 killer moves for each ply for efficiency
+Move Engine::KILLER_MOVES[2][MAX_DEPTH];
+
+//*HISTORY_MOVES[piece][square]
+int Engine::HISTORY_MOVE_SCORE[12][64];
