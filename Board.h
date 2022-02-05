@@ -141,8 +141,8 @@ public:
         cout << "  a   b   c   d   e   f   g   h   --------> File";
 
         //*print other board states
-        cout << "\n\nCurrentPlayer = " << (this->currentPlayer == WHITE ? "WHITE" : "BLACK") << endl;
-        cout << "EnPassant square = " << this->enPassantSquareIndex << (this->enPassantSquareIndex != -1 ? " (" + BitBoard::getAlgebraicCoordinateFromIndex(this->enPassantSquareIndex) + ")" : "") << endl;
+        cout << "\n\nCurrentPlayer : " << (this->currentPlayer == WHITE ? "WHITE" : "BLACK") << " ,  ";
+        cout << "EnPassant square : " << this->enPassantSquareIndex << (this->enPassantSquareIndex != -1 ? " (" + BitBoard::getAlgebraicCoordinateFromIndex(this->enPassantSquareIndex) + ")" : "") << " ,  ";
 
         string castlingRightsTemp = string((this->castlingRights[0] ? "K" : "-")) + (this->castlingRights[1] ? "Q" : "-") + (this->castlingRights[2] ? "k" : "-") + (this->castlingRights[3] ? "q" : "-");
         cout << "Castling Rights = " << castlingRightsTemp << endl;

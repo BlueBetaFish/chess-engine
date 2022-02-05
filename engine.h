@@ -17,12 +17,14 @@ using namespace std;
 struct MinimaxReturn
 {
     int bestScore;
-    Move bestMove;
     long long nodeCount;
 };
 
 class Engine : public Board
 {
+    //*bestMove after a search
+    static Move BEST_MOVE;
+
     //*materialValue[piece]
     static int materialValue[12];
 
@@ -263,7 +265,7 @@ public:
 
         //*TODO: codeMonkeyKing was returning beta here dunno why , check later
         if (currScore >= beta)
-            return {beta, Move::INVALID_MOVE, 1};
+            return {beta, 1};
 
         alpha = max(alpha, currScore);
 
@@ -307,11 +309,11 @@ public:
 
             //*TODO: codeMonkeyKing is returning beta here dunno why check alter
             if (alpha >= beta)
-                return {beta, Move::INVALID_MOVE, nodeCount};
+                return {beta, nodeCount};
         }
 
         //*return best score
-        return {alpha, Move::INVALID_MOVE, nodeCount};
+        return {alpha, nodeCount};
     }
 
     MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply)
@@ -321,7 +323,7 @@ public:
             // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
 
             MinimaxReturn quiescenceSearchResult = this->quiescenceSearch(alpha, beta, ply);
-            return {quiescenceSearchResult.bestScore, Move::INVALID_MOVE, quiescenceSearchResult.nodeCount};
+            return {quiescenceSearchResult.bestScore, quiescenceSearchResult.nodeCount};
         }
 
         long long legalMoves = 0;
@@ -335,7 +337,6 @@ public:
         if (inCheck)
             depthLimit++;
 
-        Move bestMove = Move::INVALID_MOVE;
         long long nodeCount = 0;
 
         int maxScore = INT_MIN;
@@ -379,10 +380,11 @@ public:
                 }
 
                 maxScore = alpha = currScore;
-                bestMove = move; //*current move is the best move
+
+                if (ply == 0)
+                    Engine::BEST_MOVE = move; //*current move is the best move
             }
 
-            //*TODO: codeMonkeyKing was returning beta here dunno why
             //*beta cutoff
             if (alpha >= beta)
             {
@@ -394,7 +396,7 @@ public:
                     Engine::KILLER_MOVES[0][ply] = move;
                 }
 
-                return {beta, bestMove, nodeCount};
+                return {beta, nodeCount};
             }
         }
 
@@ -405,21 +407,22 @@ public:
             if (inCheck)
             {
                 //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
-                return {-49000 - depthLimit, Move::INVALID_MOVE, nodeCount};
+                return {-49000 - depthLimit, nodeCount};
             }
             //*stalemate
             else
             {
-                return {0, Move::INVALID_MOVE, nodeCount};
+                return {0, nodeCount};
             }
         }
 
         //*return best move
-        return {alpha, bestMove, nodeCount};
+        return {alpha, nodeCount};
     }
 
     static void resetTablesOfSearch()
     {
+        Engine::BEST_MOVE = Move::INVALID_MOVE;
 
         //*reset KILLER_MOVE and HISTORY_MOVE_SCORE tables
         for (int i = 0; i < 2; i++)
@@ -444,7 +447,7 @@ public:
 
         MinimaxReturn res = negamax(depth, -50000, 50000, 0);
 
-        if (res.bestMove == Move::INVALID_MOVE)
+        if (Engine::BEST_MOVE == Move::INVALID_MOVE)
         {
             cout << "\n\nProblem searchPostion : INVALID_MOVE returned\n\n";
             return;
@@ -452,10 +455,12 @@ public:
         else
         {
             cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount << endl;
-            cout << "bestmove " << res.bestMove.getUCIMove() << endl;
+            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
         }
     }
 };
+
+Move Engine::BEST_MOVE = Move::INVALID_MOVE;
 
 int Engine::materialValue[12] = {
     100,    // white pawn value(P)
