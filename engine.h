@@ -332,10 +332,7 @@ public:
 
         long long legalMoves = 0;
 
-        //*TODO: move it to the section where inCheck is used, otherwise bestMove might be returned before reaching that section , and i am calling this function unnecessarily here
         bool inCheck = this->isCurrentPlayerKingInCheck();
-
-        //*TODO: didnt understand properly , research later
 
         //*if current player is in check(it is an interesting position and cant be ignored) , increase search depth if the king has been exposed into a check to avoid being mated
         int oldDepthLimit = depthLimit;
@@ -386,7 +383,7 @@ public:
 
                 maxScore = alpha = currScore;
 
-                //*set PV_TABLE
+                //*------------------------------------set PV_TABLE------------------------------------
                 //*reset pv line of current ply
                 PV_TABLE[ply].clearSize();
 
@@ -439,7 +436,7 @@ public:
         return {alpha, nodeCount};
     }
 
-    static void resetTablesOfSearch()
+    static void inline resetTablesOfSearch()
     {
         Engine::BEST_MOVE = Move::INVALID_MOVE;
 
@@ -458,7 +455,7 @@ public:
 
         for (int i = 0; i < MAX_DEPTH; i++)
         {
-            PV_TABLE[i].clearSize();
+            PV_TABLE[i].reset();
         }
     }
 
@@ -491,8 +488,52 @@ public:
                     cout << " ";
             }
 
-            cout << "\nbestmove " << PV_TABLE[0][0].getUCIMove() << endl;
+            cout << "\nbestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
         }
+    }
+
+    //*find the best move upto given depth
+    void inline searchPositionIterativeDeepening(int depth)
+    {
+        long long totalNodes = 0;
+
+        //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
+        Engine::resetTablesOfSearch();
+
+        for (int currDepth = 1; currDepth <= depth; currDepth++)
+        {
+            //*TODO: comment this
+            // Engine::resetTablesOfSearch();
+
+            MinimaxReturn res = negamax(currDepth, -50000, 50000, 0);
+
+            if (Engine::BEST_MOVE == Move::INVALID_MOVE)
+            {
+                cout << "\n\nProblem searchPositionIterativeDeepening : INVALID_MOVE returned\n\n";
+                return;
+            }
+            else
+            {
+                totalNodes += res.nodeCount;
+
+                cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount;
+
+                //*print Principal variation line
+                cout << " pv ";
+                //*TODO: print pv moves
+                for (int i = 0; i < PV_TABLE[0].size(); i++)
+                {
+                    cout << PV_TABLE[0][i].getUCIMove();
+
+                    if (i != PV_TABLE[0].size() - 1)
+                        cout << " ";
+                }
+                cout << endl;
+            }
+        }
+        cout << "\nbestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+
+        cout << "\nTotal Nodes of iterative deepening : " << totalNodes << endl;
     }
 };
 
@@ -729,5 +770,20 @@ Move Engine::KILLER_MOVES[2][MAX_DEPTH];
 //*HISTORY_MOVES[piece][square]
 int Engine::HISTORY_MOVE_SCORE[12][64];
 
-//*Principal variation table
+/*
+* For example : for depth 4 , PV_TABLE:
+
+    ply
+    |
+    |
+    V
+    0  ---> m4 m3 m2 m1
+    1  ---> m3 m2 m1
+    2  ---> m2 m1
+    3  ---> m1
+
+
+*/
+//*Principal variation table : PV_TABLE[ply] = move list(principal vaiation line moves at ply )
+//* PV_TABLE[0][depth] = best move of the player at depth after completing the search
 MoveList Engine::PV_TABLE[MAX_DEPTH];

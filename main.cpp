@@ -277,7 +277,7 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    bool debugMode = false;
+    bool debugMode = true;
 
     if (debugMode)
     {
@@ -287,16 +287,25 @@ int main()
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
-        int depthLimit = 5;
+        int depthLimit = 6;
         // cout << "\nEnter depthLimit : ";
         // cin >> depthLimit;
 
         // long long numberOfLeaves = engine.perft_test(depthLimit);
+        cout << "\n\n----------------------------------------------------------------------------\n\n";
 
         long startTime = Engine::getTimeInMilliSeconds();
         engine.searchPosition(depthLimit);
         long endTime = Engine::getTimeInMilliSeconds();
-        cout << "\n\nTime required : " << (endTime - startTime) << " ms";
+        cout << "\n\nTime required for normal search:       " << (endTime - startTime) << " ms";
+        cout << "\n\n----------------------------------------------------------------------------\n\n";
+
+        startTime = Engine::getTimeInMilliSeconds();
+        engine.searchPositionIterativeDeepening(depthLimit);
+        endTime = Engine::getTimeInMilliSeconds();
+        cout << "\n\nTime required for iterative deepening: " << (endTime - startTime) << " ms";
+
+        cout << "\n\n----------------------------------------------------------------------------\n\n";
 
         // MoveList moveList;
         // engine.generateAllPseudoLegalMovesOfGivenPlayer(engine.getCurrentPlayer(), moveList);
