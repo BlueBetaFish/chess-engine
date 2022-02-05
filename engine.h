@@ -418,10 +418,29 @@ public:
         return {alpha, bestMove, nodeCount};
     }
 
+    static void resetTablesOfSearch()
+    {
+
+        //*reset KILLER_MOVE and HISTORY_MOVE_SCORE tables
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < MAX_DEPTH; j++)
+                Engine::KILLER_MOVES[i][j] = Move::INVALID_MOVE;
+        }
+
+        for (int i = 0; i < 12; i++)
+        {
+            for (int j = 0; j < 64; j++)
+                Engine::HISTORY_MOVE_SCORE[i][j] = 0;
+        }
+    }
+
     //*TODO:
     //*find the best move upto given depth
     void inline searchPosition(int depth)
     {
+        //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
+        Engine::resetTablesOfSearch();
 
         MinimaxReturn res = negamax(depth, -50000, 50000, 0);
 
