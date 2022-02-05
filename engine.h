@@ -45,6 +45,9 @@ class Engine : public Board
     //*HISTORY_MOVES[piece][square]
     static int HISTORY_MOVE_SCORE[12][64];
 
+    //*Principal variation table
+    static MoveList PV_TABLE[MAX_DEPTH];
+
 public:
     Engine()
     {
@@ -318,6 +321,7 @@ public:
 
     MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply)
     {
+
         if (depthLimit == 0)
         {
             // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
@@ -334,6 +338,7 @@ public:
         //*TODO: didnt understand properly , research later
 
         //*if current player is in check(it is an interesting position and cant be ignored) , increase search depth if the king has been exposed into a check to avoid being mated
+        int oldDepthLimit = depthLimit;
         if (inCheck)
             depthLimit++;
 
@@ -380,6 +385,20 @@ public:
                 }
 
                 maxScore = alpha = currScore;
+
+                //*set PV_TABLE
+                //*reset pv line of current ply
+                PV_TABLE[ply].clearSize();
+
+                //*store this move as the first move of the pv line
+                PV_TABLE[ply].push_back(move);
+
+                //*store the moves of the next ply as the next moves of this pv line
+                for (int i = 0; i < PV_TABLE[ply + 1].size(); i++)
+                    PV_TABLE[ply].push_back(PV_TABLE[ply + 1][i]);
+
+                //*as in special positions like check, we increased depth and searched, so in that case PV Line becomes longer becuase we search for extra depth , so set the original depth
+                PV_TABLE[ply].setSize(oldDepthLimit);
 
                 if (ply == 0)
                     Engine::BEST_MOVE = move; //*current move is the best move
@@ -436,6 +455,11 @@ public:
             for (int j = 0; j < 64; j++)
                 Engine::HISTORY_MOVE_SCORE[i][j] = 0;
         }
+
+        for (int i = 0; i < MAX_DEPTH; i++)
+        {
+            PV_TABLE[i].clearSize();
+        }
     }
 
     //*TODO:
@@ -454,8 +478,20 @@ public:
         }
         else
         {
-            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount << endl;
-            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount;
+
+            //*print Principal variation line
+            cout << " pv ";
+            //*TODO: print pv moves
+            for (int i = 0; i < PV_TABLE[0].size(); i++)
+            {
+                cout << PV_TABLE[0][i].getUCIMove();
+
+                if (i != PV_TABLE[0].size() - 1)
+                    cout << " ";
+            }
+
+            cout << "\nbestmove " << PV_TABLE[0][0].getUCIMove() << endl;
         }
     }
 };
@@ -692,3 +728,6 @@ Move Engine::KILLER_MOVES[2][MAX_DEPTH];
 
 //*HISTORY_MOVES[piece][square]
 int Engine::HISTORY_MOVE_SCORE[12][64];
+
+//*Principal variation table
+MoveList Engine::PV_TABLE[MAX_DEPTH];

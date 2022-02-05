@@ -134,4 +134,26 @@ public:
     {
         return this->arr[i];
     }
+
+    void inline clearSize()
+    {
+        this->currSize = 0;
+    }
+
+    void inline resetElements()
+    {
+        for (int i = 0; i < this->currSize; i++)
+            this->arr[i] = Move::INVALID_MOVE;
+    }
+
+    void inline reset()
+    {
+        this->clearSize();
+        this->resetElements();
+    }
+
+    void inline setSize(int newSize)
+    {
+        this->currSize = newSize;
+    }
 };
