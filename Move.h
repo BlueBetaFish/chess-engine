@@ -65,7 +65,7 @@ public:
         cout << endl;
     }
 
-    string getUCIMove()
+    string getUCIMove() const
     {
         string res = BitBoard::getAlgebraicCoordinateFromIndex(this->fromSquare) + BitBoard::getAlgebraicCoordinateFromIndex(this->toSquare);
         if (this->promotedPiece != -1)
@@ -87,7 +87,7 @@ public:
             move.print();
     }
 
-    inline bool operator==(const Move &newMove)
+    inline bool operator==(const Move &newMove) const
     {
         return (
             this->fromSquare == newMove.fromSquare &&

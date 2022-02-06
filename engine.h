@@ -101,8 +101,30 @@ public:
     }
 
     //*retruns the relative score of a move so that we can order them from good to bad
-    int inline getMoveScore(const Move &move, int ply)
+    int inline getMoveScore(const Move &move, int ply, bool isFollowingPVLine)
     {
+        //*if the position is following pv line then check if the move is equal to PV move at given ply or not
+        if (isFollowingPVLine)
+        {
+            //*if the move is a PV move at the given ply , then return max score for this move
+
+            //*if the PV_LINE upto given ply was found
+            if (ply < PV_TABLE[0].size())
+            {
+                //*if the move matches the PV move at the given ply
+                if (move == PV_TABLE[0][ply])
+                {
+                    cout << "current PV move : ";
+                    cout << move.getUCIMove();
+                    cout << " , at ply : " << ply;
+                    cout << endl;
+
+                    //*return the max score for this PV move
+                    return 20000;
+                }
+            }
+        }
+
         //*if move is capture move , then find the MVV_LVA_MOVE_SCORE value
         if (move.captureFlag)
         {
@@ -165,14 +187,14 @@ public:
         return 0;
     }
 
-    inline void sortMoveList(MoveList &moveList, int ply)
+    inline void sortMoveList(MoveList &moveList, int ply, bool isFollowingPVLine)
     {
         int moveListSize = moveList.size();
 
         //*store the scores of all moves
         int moveScores[moveListSize];
         for (int i = 0; i < moveListSize; i++)
-            moveScores[i] = this->getMoveScore(moveList[i], ply);
+            moveScores[i] = this->getMoveScore(moveList[i], ply, isFollowingPVLine);
 
         //*-----------------INSERTION SORT-------------------------------//
         for (int i = 1; i < moveListSize; i++)
@@ -279,7 +301,7 @@ public:
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
-        this->sortMoveList(moveList, ply);
+        this->sortMoveList(moveList, ply, false); //*quiscence search is not following PV line
 
         Engine backUpCopyOfBoard = *this;
 
@@ -319,7 +341,7 @@ public:
         return {alpha, nodeCount};
     }
 
-    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply)
+    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
     {
 
         if (depthLimit == 0)
@@ -348,22 +370,34 @@ public:
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
-        this->sortMoveList(moveList, ply);
+        this->sortMoveList(moveList, ply, isCurrNodeFollowingPVLine);
 
         Engine backUpCopyOfBoard = *this;
 
         int moveListSize = moveList.size();
 
+        bool isChildNodeFollowingPVLine = isCurrNodeFollowingPVLine;
+
         for (int i = 0; i < moveListSize; i++)
         {
             Move move = moveList[i];
+
             //*if making this move lets opponent capture our king , dont consider it
             if (!this->makeMove(move))
                 continue;
 
+            //*if the node(position) was following PV line , and the move is pv move then enable isCurrNodeFollowingPVLine for the children nodes of this move, else disable isCurrNodeFollowingPVLine since other nodes are not following the pv line
+            if (isCurrNodeFollowingPVLine)
+            {
+                if (ply < PV_TABLE[0].size() && PV_TABLE[0][ply] == move)
+                    isChildNodeFollowingPVLine = true;
+                else
+                    isChildNodeFollowingPVLine = false;
+            }
+
             legalMoves++;
 
-            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1);
+            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
             int currScore = -currReturnedVal.bestScore;
 
             //*restore board
@@ -466,7 +500,7 @@ public:
         //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
         Engine::resetTablesOfSearch();
 
-        MinimaxReturn res = negamax(depth, -50000, 50000, 0);
+        MinimaxReturn res = negamax(depth, -50000, 50000, 0, true);
 
         if (Engine::BEST_MOVE == Move::INVALID_MOVE)
         {
@@ -505,7 +539,7 @@ public:
             //*TODO: comment this
             // Engine::resetTablesOfSearch();
 
-            MinimaxReturn res = negamax(currDepth, -50000, 50000, 0);
+            MinimaxReturn res = negamax(currDepth, -50000, 50000, 0, true);
 
             if (Engine::BEST_MOVE == Move::INVALID_MOVE)
             {
@@ -516,7 +550,7 @@ public:
             {
                 totalNodes += res.nodeCount;
 
-                cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount;
+                cout << "\ninfo score cp " << res.bestScore << " depth " << currDepth << " nodes " << res.nodeCount;
 
                 //*print Principal variation line
                 cout << " pv ";
