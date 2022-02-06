@@ -382,6 +382,10 @@ public:
         //*but if the current node is following the pv line, then that children which is obtained by executing the PV move, will follow pv line
         bool isChildNodeFollowingPVLine = isCurrNodeFollowingPVLine;
 
+        //*variable to keep track of whether the  PV node of "Principal Variation Search" is found or not
+        //*Learn about Principal Variation Search : https://web.archive.org/web/20071030220825/http://www.brucemo.com/compchess/programming/pvs.htm
+        bool foundPVNode = false;
+
         for (int i = 0; i < moveListSize; i++)
         {
             Move move = moveList[i];
@@ -402,8 +406,53 @@ public:
 
             legalMoves++;
 
-            MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
-            int currScore = -currReturnedVal.bestScore;
+            //*TODO: comment this normal negamax() call , because PrincipalVariationSearch() is implemented
+            // MinimaxReturn currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine); //*normal negamax search
+            // int currScore = -currReturnedVal.bestScore;
+
+            //*----------------------------------PRINCIPAL VARIATION SEARCH (instead of normal negamax search)-------------------------------------------------------------//
+            //*
+            //*
+            //*
+            //*
+
+            //*if we have already found that this node is PV node , then for other nodes (either alpha node or beta node) try to prove that this node will fail to be a PV node (i.e, PV node : this move's score is better than alpha)
+            /*
+             *PVS :  If no PV move has been found, "AlphaBeta()" is recursed normally.  If one has been found,
+             *everything changes.  Rather than searching with a normal (alpha, beta) window, we search with (alpha, alpha + 1).  The premise is that all of the searches are going to come
+             *back with a score less than or equal to alpha, and if this is going to happen, the elimination of the top end of the window results in more cutoffs.  Of course, if the premise
+             *is wrong, the score comes back at alpha + 1 or higher, and the search  must be re-done with the wider window.
+             */
+            MinimaxReturn currReturnedVal;
+            int currScore;
+
+            //*if principal variation node was found previously , then search the rest of nodes with narrower alpha, beta bound to try to prove that this move is bad,
+            //* if it is indeed not a bad node, then research with full alpha,beta bandwidth
+            if (foundPVNode)
+            {
+                //*search with beta = alpha + 1
+                currReturnedVal = this->negamax(depthLimit - 1, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
+                currScore = -currReturnedVal.bestScore;
+
+                //*if the narrow search finds that it is not a bad move that is , this move is better than the first found PV move, then research again with full alpha,beta bandwidth
+                if (currScore > alpha && currScore < beta)
+                {
+                    currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
+                    currScore = -currReturnedVal.bestScore;
+                }
+            }
+            //*if the node is not PV node proved yet , then search with full alpha,beta bandwidth
+            else
+            {
+                currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
+                currScore = -currReturnedVal.bestScore;
+            }
+            //*
+            //*
+            //*
+            //*
+            //*
+            //*----------------------------------PRINCIPAL VARIATION SEARCH-------------------------------------------------------------//
 
             //*restore board
             *this = backUpCopyOfBoard;
@@ -421,6 +470,9 @@ public:
                 }
 
                 maxScore = alpha = currScore;
+
+                //*---------------------Mark foundPVNode flag true(Needed for Principal variation search)--------------------------//
+                foundPVNode = true;
 
                 //*------------------------------------set PV move in PV_TABLE------------------------------------
                 //*reset pv line of current ply
@@ -440,7 +492,7 @@ public:
                     Engine::BEST_MOVE = move; //*current move is the best move
             }
 
-            //*beta cutoff
+            //*beta cutoff / fail high (move fails as it is too good (i.e, alpha >= beta) )
             if (alpha >= beta)
             {
                 //*for quiet move, store it as killer move
