@@ -100,20 +100,21 @@ public:
 #endif
     }
 
-    //*retruns the relative score of a move so that we can order them from good to bad
-    int inline getMoveScore(const Move &move, int ply, bool isFollowingPVLine)
+    //*retruns the relative score of a move so that we can order them from good to bad (isCurrNodeFollowingPVLine is the flag if the current node is following the pv line)
+    int inline getMoveScore(const Move &move, int ply, bool isCurrNodeFollowingPVLine)
     {
         //*if the position is following pv line then check if the move is equal to PV move at given ply or not
-        if (isFollowingPVLine)
+        if (isCurrNodeFollowingPVLine)
         {
             //*if the move is a PV move at the given ply , then return max score for this move
 
             //*if the PV_LINE upto given ply was found
-            if (ply < PV_TABLE[0].size())
+            if (ply < Engine::PV_TABLE[0].size())
             {
                 //*if the move matches the PV move at the given ply
-                if (move == PV_TABLE[0][ply])
+                if (move == Engine::PV_TABLE[0][ply])
                 {
+                    //*TODO:Printing For debugging purpose:
                     cout << "current PV move : ";
                     cout << move.getUCIMove();
                     cout << " , at ply : " << ply;
@@ -187,14 +188,15 @@ public:
         return 0;
     }
 
-    inline void sortMoveList(MoveList &moveList, int ply, bool isFollowingPVLine)
+    //*isCurrNodeFollowingPVLine is a flag indicating whether the current node(position) is following the PV line or not
+    inline void sortMoveList(MoveList &moveList, int ply, bool isCurrNodeFollowingPVLine)
     {
         int moveListSize = moveList.size();
 
         //*store the scores of all moves
         int moveScores[moveListSize];
         for (int i = 0; i < moveListSize; i++)
-            moveScores[i] = this->getMoveScore(moveList[i], ply, isFollowingPVLine);
+            moveScores[i] = this->getMoveScore(moveList[i], ply, isCurrNodeFollowingPVLine);
 
         //*-----------------INSERTION SORT-------------------------------//
         for (int i = 1; i < moveListSize; i++)
@@ -341,6 +343,7 @@ public:
         return {alpha, nodeCount};
     }
 
+    //*isCurrNodeFollowingPVLine is a flag indicating whether the current node(position) is following the PV line or not
     MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
     {
 
@@ -348,8 +351,7 @@ public:
         {
             // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
 
-            MinimaxReturn quiescenceSearchResult = this->quiescenceSearch(alpha, beta, ply);
-            return {quiescenceSearchResult.bestScore, quiescenceSearchResult.nodeCount};
+            return this->quiescenceSearch(alpha, beta, ply);
         }
 
         long long legalMoves = 0;
@@ -376,6 +378,8 @@ public:
 
         int moveListSize = moveList.size();
 
+        //*if the current node is not following the pv line, then its children nodes will not follow pv line,
+        //*but if the current node is following the pv line, then that children which is obtained by executing the PV move, will follow pv line
         bool isChildNodeFollowingPVLine = isCurrNodeFollowingPVLine;
 
         for (int i = 0; i < moveListSize; i++)
@@ -389,7 +393,8 @@ public:
             //*if the node(position) was following PV line , and the move is pv move then enable isCurrNodeFollowingPVLine for the children nodes of this move, else disable isCurrNodeFollowingPVLine since other nodes are not following the pv line
             if (isCurrNodeFollowingPVLine)
             {
-                if (ply < PV_TABLE[0].size() && PV_TABLE[0][ply] == move)
+                //*if the PV move upto given ply was found previously then check if the current move is equal to the PV move of the given ply level, if true, then the child node will follow PV line
+                if (ply < Engine::PV_TABLE[0].size() && Engine::PV_TABLE[0][ply] == move)
                     isChildNodeFollowingPVLine = true;
                 else
                     isChildNodeFollowingPVLine = false;
@@ -417,19 +422,19 @@ public:
 
                 maxScore = alpha = currScore;
 
-                //*------------------------------------set PV_TABLE------------------------------------
+                //*------------------------------------set PV move in PV_TABLE------------------------------------
                 //*reset pv line of current ply
-                PV_TABLE[ply].clearSize();
+                Engine::PV_TABLE[ply].clearSize();
 
                 //*store this move as the first move of the pv line
-                PV_TABLE[ply].push_back(move);
+                Engine::PV_TABLE[ply].push_back(move);
 
                 //*store the moves of the next ply as the next moves of this pv line
-                for (int i = 0; i < PV_TABLE[ply + 1].size(); i++)
-                    PV_TABLE[ply].push_back(PV_TABLE[ply + 1][i]);
+                for (int i = 0; i < Engine::PV_TABLE[ply + 1].size(); i++)
+                    Engine::PV_TABLE[ply].push_back(Engine::PV_TABLE[ply + 1][i]);
 
                 //*as in special positions like check, we increased depth and searched, so in that case PV Line becomes longer becuase we search for extra depth , so set the original depth
-                PV_TABLE[ply].setSize(oldDepthLimit);
+                Engine::PV_TABLE[ply].setSize(oldDepthLimit);
 
                 if (ply == 0)
                     Engine::BEST_MOVE = move; //*current move is the best move
@@ -489,7 +494,7 @@ public:
 
         for (int i = 0; i < MAX_DEPTH; i++)
         {
-            PV_TABLE[i].reset();
+            Engine::PV_TABLE[i].reset();
         }
     }
 
@@ -514,11 +519,11 @@ public:
             //*print Principal variation line
             cout << " pv ";
             //*TODO: print pv moves
-            for (int i = 0; i < PV_TABLE[0].size(); i++)
+            for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
             {
-                cout << PV_TABLE[0][i].getUCIMove();
+                cout << Engine::PV_TABLE[0][i].getUCIMove();
 
-                if (i != PV_TABLE[0].size() - 1)
+                if (i != Engine::PV_TABLE[0].size() - 1)
                     cout << " ";
             }
 
@@ -539,6 +544,7 @@ public:
             //*TODO: comment this
             // Engine::resetTablesOfSearch();
 
+            //*each first start position at each search follow PV line
             MinimaxReturn res = negamax(currDepth, -50000, 50000, 0, true);
 
             if (Engine::BEST_MOVE == Move::INVALID_MOVE)
@@ -555,11 +561,11 @@ public:
                 //*print Principal variation line
                 cout << " pv ";
                 //*TODO: print pv moves
-                for (int i = 0; i < PV_TABLE[0].size(); i++)
+                for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
                 {
-                    cout << PV_TABLE[0][i].getUCIMove();
+                    cout << Engine::PV_TABLE[0][i].getUCIMove();
 
-                    if (i != PV_TABLE[0].size() - 1)
+                    if (i != Engine::PV_TABLE[0].size() - 1)
                         cout << " ";
                 }
                 cout << endl;
