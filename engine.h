@@ -414,6 +414,8 @@ public:
         //*preserve board state to restore the board after executing each move
         Engine backUpCopyOfBoard = *this;
 
+        // TODO: uncomment NULL MOVE PRUNING , when you understand and implement properly
+
         //*----------------------------------NULL MOVE PRUNING START-------------------------------------------------------------//
         //* Resource : https://web.archive.org/web/20071031095933/http://www.brucemo.com/compchess/programming/nullmove.htm
 
@@ -436,7 +438,7 @@ public:
                 return {beta, currReturnVal.nodeCount};
         }
 
-        //*----------------------------------NULL MOVE PRUNING END-------------------------------------------------------------//
+        // //*----------------------------------NULL MOVE PRUNING END-------------------------------------------------------------//
 
         //*generate all pseudo legal moves
         MoveList moveList;
@@ -517,7 +519,7 @@ public:
                  */
 
                 //*TODO: depthLimit should be ply here
-                if (searchedMoveCount >= FULL_DEPTH_MOVES && depthLimit >= REDUCTION_DEPTH_LIMIT && moveCanBeReduced(move, inCheck))
+                if (searchedMoveCount >= FULL_DEPTH_MOVES && ply >= REDUCTION_DEPTH_LIMIT && moveCanBeReduced(move, inCheck))
                 {
                     // *search current move with reduced depth (and also reduced aloha-beta bandwidth):
                     currReturnedVal = this->negamax(depthLimit - 2, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
