@@ -187,7 +187,7 @@ void parseGo(const string &command)
         depth = stoi(command.substr(depthPos + 6, command.size() - depthPos - 6));
 
     // *search position for best move
-    engine.searchPosition(depth);
+    engine.searchPositionIterativeDeepening(depth);
 }
 
 /*
@@ -277,7 +277,7 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    bool debugMode = true;
+    bool debugMode = false;
 
     if (debugMode)
     {

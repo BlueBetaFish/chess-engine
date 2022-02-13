@@ -426,7 +426,7 @@ public:
 
             //*search null move with reduced depthLimit to find beta cut offs
             //*here alpha = beta - 1
-            MinimaxReturn currReturnVal = this->negamax(depthLimit - 1 - 2, -beta, -(beta - 1), ply + 1, isCurrNodeFollowingPVLine);
+            MinimaxReturn currReturnVal = this->negamax(depthLimit - 1 - 2, -beta, -(beta - 1), ply + 1, false);
             int currScore = -currReturnVal.bestScore;
 
             //*restore board
