@@ -12,7 +12,14 @@ using namespace std;
 //*helper functions
 #include "helperFunctions.h"
 
-#define MAX_DEPTH 64 //*we assume we will search upto max 64 depth
+//*we assume we will search upto max 64 depth
+#define MAX_DEPTH 64
+
+//*Minimum number of moves ,after which other moves can be reduced
+#define FULL_DEPTH_MOVES 4
+
+//*min depth after which moves can be reduced
+#define REDUCTION_DEPTH_LIMIT 3
 
 struct MinimaxReturn
 {
@@ -99,6 +106,20 @@ public:
         return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
 #endif
     }
+
+    /*
+
+    *   Move Ordering:
+    *   ---------------------------------------------------------------------
+    *       1. PV move
+    *       2. Captures in MVV_LVA
+    *       3. 1st Killer move
+    *       4. 2nd Killer move
+    *       5. History move
+    *       6. Rest of the moves
+    *
+
+    */
 
     //*retruns the relative score of a move so that we can order them from good to bad (isCurrNodeFollowingPVLine is the flag if the current node is following the pv line)
     int inline getMoveScore(const Move &move, int ply, bool isCurrNodeFollowingPVLine)
@@ -217,6 +238,26 @@ public:
             moveScores[j + 1] = x;
             moveList[j + 1] = m;
         }
+    }
+
+    //*checks if the depth for the given can be reduced
+    //*Needed in Late Move Reduction
+    inline bool moveCanBeReduced(const Move &move, bool inCheck) const
+    {
+        /*
+         *            Common Conditions : (copied from https://www.chessprogramming.org/Late_Move_Reductions)
+         *
+         *            Most programs do not reduce these types of moves:
+         *
+         *                1. Tactical Moves (captures and promotions) (IMPLEMENTED)
+         *                2. Moves while in check  (IMPLEMENTED)
+         *                3. Moves which give check
+         *                4. Moves that cause a search extension
+         *                5. Anytime in a PV-Node in a PVS search
+         *                6. Depth < 3 (sometimes depth < 2)
+         */
+
+        return (!inCheck && !move.captureFlag && move.promotedPiece == -1);
     }
 
     /*
@@ -347,7 +388,7 @@ public:
     MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
     {
 
-        if (depthLimit == 0)
+        if (depthLimit <= 0)
         {
             // return {this->staticEvaluation(), Move::INVALID_MOVE, 1};
 
@@ -367,14 +408,42 @@ public:
 
         int maxScore = INT_MIN;
 
+        //*number of searched moves of the current node
+        int searchedMoveCount = 0;
+
+        //*preserve board state to restore the board after executing each move
+        Engine backUpCopyOfBoard = *this;
+
+        //*----------------------------------NULL MOVE PRUNING START-------------------------------------------------------------//
+        //* Resource : https://web.archive.org/web/20071031095933/http://www.brucemo.com/compchess/programming/nullmove.htm
+
+        //*if there are >= 3 depths to be searched and it is not the root node, and king is not in check , then do null move pruning
+        if (depthLimit >= 3 && !inCheck && ply != 0)
+        {
+            //*make null move( Null Move : you do not play any move and let the opponent play her move)
+            this->currentPlayer = Piece::getOppositeColor(this->currentPlayer);
+            this->enPassantSquareIndex = -1; //*IMPORTANT: reset enPassant square
+
+            //*search null move with reduced depthLimit to find beta cut offs
+            //*here alpha = beta - 1
+            MinimaxReturn currReturnVal = this->negamax(depthLimit - 1 - 2, -beta, -(beta - 1), ply + 1, isCurrNodeFollowingPVLine);
+            int currScore = -currReturnVal.bestScore;
+
+            //*restore board
+            *this = backUpCopyOfBoard;
+
+            if (currScore >= beta)
+                return {beta, currReturnVal.nodeCount};
+        }
+
+        //*----------------------------------NULL MOVE PRUNING END-------------------------------------------------------------//
+
         //*generate all pseudo legal moves
         MoveList moveList;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
         this->sortMoveList(moveList, ply, isCurrNodeFollowingPVLine);
-
-        Engine backUpCopyOfBoard = *this;
 
         int moveListSize = moveList.size();
 
@@ -384,7 +453,7 @@ public:
 
         //*variable to keep track of whether the  PV node of "Principal Variation Search" is found or not
         //*Learn about Principal Variation Search : https://web.archive.org/web/20071030220825/http://www.brucemo.com/compchess/programming/pvs.htm
-        bool foundPVNode = false;
+        // bool foundPVNode = false;
 
         for (int i = 0; i < moveListSize; i++)
         {
@@ -426,33 +495,62 @@ public:
             MinimaxReturn currReturnedVal;
             int currScore;
 
-            //*if principal variation node was found previously , then search the rest of nodes with narrower alpha, beta bound to try to prove that this move is bad,
-            //* if it is indeed not a bad node, then research with full alpha,beta bandwidth
-            if (foundPVNode)
-            {
-                //*search with beta = alpha + 1
-                currReturnedVal = this->negamax(depthLimit - 1, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
-                currScore = -currReturnedVal.bestScore;
-
-                //*if the narrow search finds that it is not a bad move that is , this move is better than the first found PV move, then research again with full alpha,beta bandwidth
-                if (currScore > alpha && currScore < beta)
-                {
-                    currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
-                    currScore = -currReturnedVal.bestScore;
-                }
-            }
             //*if the node is not PV node proved yet , then search with full alpha,beta bandwidth
-            else
+            if (searchedMoveCount == 0)
             {
                 currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
                 currScore = -currReturnedVal.bestScore;
             }
+            //*if principal variation node was found previously , then search the rest of nodes with narrower alpha, beta bound to try to prove that this move is bad,
+            //* if it is indeed not a bad node, then research with full alpha,beta bandwidth
+            else
+            {
+                //*-------------------------------------------------------------------------------------------------------------------------------------------
+                //*Late Move Reduction (source  : https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html )
+                //*-------------------------------------------------------------------------------------------------------------------------------------------
+
+                /*
+                 *Late move reductions are based on the simple observation that in a program with reasonably good move ordering, a beta cutoff will usually occur either at the first node, or
+                 *not at all. We make use of this observation by searching the first few moves at every node with full depth, and searching the remaining moves with reduced depth unless they
+                 *look particularly forcing or interesting in some other way. If one of the reduced moves surprise us by returning a score above alpha, the move is re-searched with full
+                 * depth.
+                 */
+
+                //*TODO: depthLimit should be ply here
+                if (searchedMoveCount >= FULL_DEPTH_MOVES && depthLimit >= REDUCTION_DEPTH_LIMIT && moveCanBeReduced(move, inCheck))
+                {
+                    // *search current move with reduced depth (and also reduced aloha-beta bandwidth):
+                    currReturnedVal = this->negamax(depthLimit - 2, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
+                    currScore = -currReturnedVal.bestScore;
+                }
+                // *hack to ensure that full-depth search is done (making currScore = alpha + 1, so that the following if(){} block is entered and full PVS search is done )
+                else
+                {
+                    currScore = alpha + 1;
+                }
+
+                //*if the move can not be reduced(i.e, full PVS search is to be done) or The reduced move produces a better score than alpha(prev best score), then do normal PVS
+                if (currScore > alpha)
+                {
+
+                    //*search with beta = alpha + 1
+                    currReturnedVal = this->negamax(depthLimit - 1, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
+                    currScore = -currReturnedVal.bestScore;
+
+                    //*if the narrow search finds that it is not a bad move that is , this move is better than the first found PV move, then research again with full alpha,beta bandwidth
+                    if (currScore > alpha && currScore < beta)
+                    {
+                        currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
+                        currScore = -currReturnedVal.bestScore;
+                    }
+                }
+            }
             //*
             //*
             //*
             //*
             //*
-            //*----------------------------------PRINCIPAL VARIATION SEARCH-------------------------------------------------------------//
+            //*----------------------------------PRINCIPAL VARIATION SEARCH END-------------------------------------------------------------//
 
             //*restore board
             *this = backUpCopyOfBoard;
@@ -472,7 +570,7 @@ public:
                 maxScore = alpha = currScore;
 
                 //*---------------------Mark foundPVNode flag true(Needed for Principal variation search)--------------------------//
-                foundPVNode = true;
+                // foundPVNode = true;
 
                 //*------------------------------------set PV move in PV_TABLE------------------------------------
                 //*reset pv line of current ply
@@ -505,6 +603,9 @@ public:
 
                 return {beta, nodeCount};
             }
+
+            //*increment searchedMoveCount
+            searchedMoveCount++;
         }
 
         //*if current player doesnt have any legal moves
