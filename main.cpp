@@ -287,7 +287,7 @@ int main()
         cout << "\n\nBoard : \n";
         engine.printBoard();
 
-        int depthLimit = 6;
+        int depthLimit = 7;
         // cout << "\nEnter depthLimit : ";
         // cin >> depthLimit;
 
