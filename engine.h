@@ -97,31 +97,19 @@ public:
         }
     }
 
-    // get time in milliseconds
-    static int inline getTimeInMilliSeconds()
-    {
-#ifdef WIN64
-        return GetTickCount();
-#else
-        struct timeval time_value;
-        gettimeofday(&time_value, NULL);
-        return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
-#endif
-    }
-
     /*
 
-    *   Move Ordering:
-    *   ---------------------------------------------------------------------
-    *       1. PV move
-    *       2. Captures in MVV_LVA
-    *       3. 1st Killer move
-    *       4. 2nd Killer move
-    *       5. History move
-    *       6. Rest of the moves
-    *
+  *   Move Ordering:
+  *   ---------------------------------------------------------------------
+  *       1. PV move
+  *       2. Captures in MVV_LVA
+  *       3. 1st Killer move
+  *       4. 2nd Killer move
+  *       5. History move
+  *       6. Rest of the moves
+  *
 
-    */
+  */
 
     //*retruns the relative score of a move so that we can order them from good to bad (isCurrNodeFollowingPVLine is the flag if the current node is following the pv line)
     int inline getMoveScore(const Move &move, int ply, bool isCurrNodeFollowingPVLine)
@@ -275,13 +263,13 @@ public:
      */
     long long inline perft_test(int depthLimit)
     {
-        long long startTime = Engine::getTimeInMilliSeconds();
+        // long long startTime = Engine::getTimeInMilliSeconds();
 
         long long res = Board::perft_test(depthLimit);
 
-        long long endTime = Engine::getTimeInMilliSeconds();
+        // long long endTime = Engine::getTimeInMilliSeconds();
         cout << "\nTotal Number of leaves upto depth = " << depthLimit << "  =  " << res << endl;
-        cout << "\n\nExecution time = " << (endTime - startTime) << " milliseconds ." << endl;
+        // cout << "\n\nExecution time = " << (endTime - startTime) << " milliseconds ." << endl;
 
         return res;
     }

@@ -31,6 +31,18 @@ public:
         engine.initializeFromFenString(START_POSITION_FEN);
     }
 
+    // get time in milliseconds
+    static int inline getTimeInMilliSeconds()
+    {
+#ifdef WIN64
+        return GetTickCount();
+#else
+        struct timeval time_value;
+        gettimeofday(&time_value, NULL);
+        return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
+#endif
+    }
+
 private:
     // //* returns move object from moveString(algebric notation) (e.g. "e7e8q")
     Move inline parseMove(const string &moveString)
