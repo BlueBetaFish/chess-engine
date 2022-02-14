@@ -1,3 +1,4 @@
+#pragma once
 
 // #include <bits/stdc++.h>
 
@@ -6,6 +7,7 @@
 #include <assert.h>
 #include <stdexcept>
 #include <iostream>
+#include <unistd.h>
 
 #ifdef WIN64
 #include <windows.h>

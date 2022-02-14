@@ -1,3 +1,5 @@
+#pragma once
+
 // Name: SOURASHIS MONDAL
 #include "neededHeaders.h"
 
