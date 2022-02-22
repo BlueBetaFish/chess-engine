@@ -26,11 +26,288 @@ using namespace std;
 struct MinimaxReturn
 {
     int bestScore;
-    long long nodeCount;
+    // long long nodeCount;
+};
+
+// get time in milliseconds
+int inline getTimeInMilliSeconds()
+{
+#ifdef WIN64
+    return GetTickCount();
+#else
+    struct timeval time_value;
+    gettimeofday(&time_value, NULL);
+    return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
+#endif
+}
+
+class UCISearchInfo
+{
+public:
+    //*exit from engine flag
+    bool quit;
+
+    //*UCI "movestogo" command moves counter
+    int movestogo;
+
+    //* UCI "movetime" command time counter
+    int movetime;
+
+    //* UCI "time" command holder (ms)
+    int time;
+
+    //*UCI "inc" command's time increment holder
+    int inc;
+
+    //* UCI "starttime" command time holder
+    int starttime;
+
+    //* UCI "stoptime" command time holder
+    int stoptime;
+
+    //* variable to flag time control availability
+    bool timeset;
+
+    //* variable to flag when the time is up
+    bool stopped;
+
+public:
+    UCISearchInfo()
+    {
+        quit = false;
+        movestogo = 30;
+        movetime = -1;
+        time = -1;
+        inc = 0;
+        starttime = 0;
+        stoptime = 0;
+        timeset = false;
+        stopped = false;
+    }
+
+    // //*=========================================================================================================================================
+    // //*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
+    // //*=========================================================================================================================================
+
+    // //*------------------getters-------------------------------------
+    // inline bool getUCIquit() const
+    // {
+    //     return this->uciSearchInfo.quit;
+    // }
+
+    // inline int getUCImovestogo() const
+    // {
+    //     return this->uciSearchInfo.movestogo;
+    // }
+
+    // inline int getUCImovetime() const
+    // {
+    //     return this->uciSearchInfo.movetime;
+    // }
+
+    // inline int getUCItime() const
+    // {
+    //     return this->uciSearchInfo.time;
+    // }
+
+    // inline int getUCIinc() const
+    // {
+    //     return this->uciSearchInfo.inc;
+    // }
+
+    // inline int getUCIstarttime() const
+    // {
+    //     return this->uciSearchInfo.starttime;
+    // }
+
+    // inline int getUCIstoptime() const
+    // {
+    //     return this->uciSearchInfo.stoptime;
+    // }
+
+    // inline bool getUCItimeset() const
+    // {
+    //     return this->uciSearchInfo.timeset;
+    // }
+
+    // inline bool getUCIstopped() const
+    // {
+    //     return this->uciSearchInfo.stopped;
+    // }
+
+    // //*------------------setters-------------------------------------
+    // inline void setUCIquit(bool val)
+    // {
+    //     this->uciSearchInfo.quit = val;
+    // }
+
+    // inline void setUCImovestogo(int val)
+    // {
+    //     this->uciSearchInfo.movestogo = val;
+    // }
+
+    // inline void setUCImovetime(int val)
+    // {
+    //     this->uciSearchInfo.movetime = val;
+    // }
+
+    // inline void setUCItime(int val)
+    // {
+    //     this->uciSearchInfo.time = val;
+    // }
+
+    // inline void setUCIinc(int val)
+    // {
+    //     this->uciSearchInfo.inc = val;
+    // }
+
+    // inline void setUCIstarttime(int val)
+    // {
+    //     this->uciSearchInfo.starttime = val;
+    // }
+
+    // inline void setUCIstoptime(int val)
+    // {
+    //     this->uciSearchInfo.stoptime = val;
+    // }
+
+    // inline void setUCItimeset(bool val)
+    // {
+    //     this->uciSearchInfo.timeset = val;
+    // }
+
+    // inline void setUCIstopped(bool val)
+    // {
+    //     this->uciSearchInfo.stopped = val;
+    // }
+
+    /*
+     *
+     *    Function to "listen" to GUI's input during search.
+     *    It's waiting for the user input from STDIN.
+     *    OS dependent.
+     *
+     *    Copied from BlueFeverSoftware's youTube channel (source : https://www.youtube.com/watch?v=NBl92Vs0fos&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=66)
+     */
+    //*TODO: Dont know about this code, copied from BlueFeverSoftware's channel(source : https://www.youtube.com/watch?v=NBl92Vs0fos&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=66)
+    inline int input_waiting()
+    {
+#ifndef WIN32
+        fd_set readfds;
+        struct timeval tv;
+        FD_ZERO(&readfds);
+        FD_SET(fileno(stdin), &readfds);
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        select(16, &readfds, 0, 0, &tv);
+
+        return (FD_ISSET(fileno(stdin), &readfds));
+#else
+        static int init = 0, pipe;
+        static HANDLE inh;
+        DWORD dw;
+
+        if (!init)
+        {
+            init = 1;
+            inh = GetStdHandle(STD_INPUT_HANDLE);
+            pipe = !GetConsoleMode(inh, &dw);
+            if (!pipe)
+            {
+                SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT));
+                FlushConsoleInputBuffer(inh);
+            }
+        }
+
+        if (pipe)
+        {
+            if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL))
+                return 1;
+            return dw;
+        }
+
+        else
+        {
+            GetNumberOfConsoleInputEvents(inh, &dw);
+            return dw <= 1 ? 0 : dw;
+        }
+
+#endif
+    }
+
+    //*TODO: Dont know about this code, copied from BlueFeverSoftware's channel(source : https://www.youtube.com/watch?v=NBl92Vs0fos&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=66)
+    //* reads GUI/user input
+    inline void read_input()
+    {
+        // bytes to read holder
+        int bytes;
+
+        // GUI/user input
+        char input[256] = "", *endc;
+
+        // "listen" to STDIN
+        if (input_waiting())
+        {
+            // tell engine to stop calculating
+            stopped = true;
+
+            // loop to read bytes from STDIN
+            do
+            {
+                // read bytes from STDIN
+                bytes = read(fileno(stdin), input, 256);
+            }
+            // until bytes available
+            while (bytes < 0);
+
+            // searches for the first occurrence of '\n'
+            endc = strchr(input, '\n');
+
+            // if found new line set value at pointer to 0
+            if (endc)
+                *endc = 0;
+
+            // if input is available
+            if (strlen(input) > 0)
+            {
+                // match UCI "quit" command
+                if (!strncmp(input, "quit", 4))
+                {
+                    // tell engine to terminate exacution
+                    quit = true;
+                }
+
+                // // match UCI "stop" command
+                else if (!strncmp(input, "stop", 4))
+                {
+                    // tell engine to terminate exacution
+                    quit = true;
+                }
+            }
+        }
+    }
+
+    //* a bridge function to interact between search and GUI input
+    inline void communicateWithGUI()
+    {
+        // if time is up break here
+        if (timeset && getTimeInMilliSeconds() > stoptime)
+        {
+            // tell engine to stop calculating
+            stopped = true;
+        }
+
+        // read GUI input
+        read_input();
+    }
 };
 
 class Engine : public Board
 {
+
+    //*Number of nodes searched
+    static long long nodeCount;
+
     //*bestMove after a search
     static Move BEST_MOVE;
 
@@ -56,6 +333,12 @@ class Engine : public Board
 
     //*Principal variation table
     static MoveList PV_TABLE[MAX_DEPTH];
+
+public:
+    //*=========================================================================================================================================
+    //*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
+    //*=========================================================================================================================================
+    static UCISearchInfo uciSearchInfo;
 
 public:
     Engine()
@@ -125,11 +408,11 @@ public:
                 //*if the move matches the PV move at the given ply
                 if (move == Engine::PV_TABLE[0][ply])
                 {
-                    //*TODO:Printing For debugging purpose:
-                    cout << "current PV move : ";
-                    cout << move.getUCIMove();
-                    cout << " , at ply : " << ply;
-                    cout << endl;
+                    // //*TODO:Printing For debugging purpose:
+                    // cout << "current PV move : ";
+                    // cout << move.getUCIMove();
+                    // cout << " , at ply : " << ply;
+                    // cout << endl;
 
                     //*return the max score for this PV move
                     return 20000;
@@ -316,18 +599,33 @@ public:
      */
     MinimaxReturn inline quiescenceSearch(int alpha, int beta, int ply)
     {
+        /*
+         *                            For time control :
+         *------------------------------------------------------------------------------
+         * for every 2048 nodes (blueFeverSoftware did this. I dont know exactly why this number has been choosen, it could be any other number) check if there is any interrupt
+         * or time has ended
+         *
+         */
+        if ((Engine::nodeCount & 2047) == 0)
+        {
+            //*check if time is up or there is any interrupt from the GUI
+            Engine::uciSearchInfo.communicateWithGUI();
+        }
+
+        //*increment searched nodes counter
+        Engine::nodeCount++;
+
         int currScore = this->staticEvaluation();
 
         // cout << "\nBoard pos:\n";
         // this->printBoard();
 
-        //*TODO: codeMonkeyKing was returning beta here dunno why , check later
         if (currScore >= beta)
-            return {beta, 1};
+            return {beta};
 
         alpha = max(alpha, currScore);
 
-        long long nodeCount = 0;
+        // long long nodeCount = 0;
 
         //*generate all pseudo legal moves
         MoveList moveList;
@@ -357,8 +655,14 @@ public:
             //*restore board
             *this = backUpCopyOfBoard;
 
+            //*return 0 if time is up
+            if (Engine::uciSearchInfo.stopped)
+            {
+                return {0};
+            }
+
             //*add new nodeCoutns
-            nodeCount += currReturnedVal.nodeCount;
+            // nodeCount += currReturnedVal.nodeCount;
 
             if (currScore > maxScore)
             {
@@ -367,16 +671,28 @@ public:
 
             //*TODO: codeMonkeyKing is returning beta here dunno why check alter
             if (alpha >= beta)
-                return {beta, nodeCount};
+                return {beta};
         }
 
         //*return best score
-        return {alpha, nodeCount};
+        return {alpha};
     }
 
     //*isCurrNodeFollowingPVLine is a flag indicating whether the current node(position) is following the PV line or not
     MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
     {
+        /*
+         *                            For time control :
+         *------------------------------------------------------------------------------
+         * for every 2048 nodes (blueFeverSoftware did this. I dont know exactly why this number has been choosen, it could be any other number) check if there is any interrupt
+         * or time has ended
+         *
+         */
+        if ((Engine::nodeCount & 2047) == 0)
+        {
+            //*check if time is up or there is any interrupt from the GUI
+            Engine::uciSearchInfo.communicateWithGUI();
+        }
 
         if (depthLimit <= 0)
         {
@@ -384,6 +700,9 @@ public:
 
             return this->quiescenceSearch(alpha, beta, ply);
         }
+
+        //*increment nodes count
+        Engine::nodeCount++;
 
         long long legalMoves = 0;
 
@@ -394,7 +713,7 @@ public:
         if (inCheck)
             depthLimit++;
 
-        long long nodeCount = 0;
+        // long long nodeCount = 0;
 
         int maxScore = INT_MIN;
 
@@ -424,8 +743,14 @@ public:
             //*restore board
             *this = backUpCopyOfBoard;
 
+            //*return 0 if time is up
+            if (Engine::uciSearchInfo.stopped)
+            {
+                return {0};
+            }
+
             if (currScore >= beta)
-                return {beta, currReturnVal.nodeCount};
+                return {beta};
         }
 
         // //*----------------------------------NULL MOVE PRUNING END-------------------------------------------------------------//
@@ -547,8 +872,14 @@ public:
             //*restore board
             *this = backUpCopyOfBoard;
 
+            //*return 0 if time is up
+            if (Engine::uciSearchInfo.stopped)
+            {
+                return {0};
+            }
+
             //*add new nodeCoutns
-            nodeCount += currReturnedVal.nodeCount;
+            // nodeCount += currReturnedVal.nodeCount;
 
             if (currScore > maxScore)
             {
@@ -593,7 +924,7 @@ public:
                     Engine::KILLER_MOVES[0][ply] = move;
                 }
 
-                return {beta, nodeCount};
+                return {beta};
             }
 
             //*increment searchedMoveCount
@@ -607,22 +938,27 @@ public:
             if (inCheck)
             {
                 //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
-                return {-49000 - depthLimit, nodeCount};
+                return {-49000 - depthLimit};
             }
             //*stalemate
             else
             {
-                return {0, nodeCount};
+                return {0};
             }
         }
 
         //*return best move
-        return {alpha, nodeCount};
+        return {alpha};
     }
 
     static void inline resetTablesOfSearch()
     {
+        Engine::nodeCount = 0;
+
         Engine::BEST_MOVE = Move::INVALID_MOVE;
+
+        //*TODO:
+        Engine::uciSearchInfo.stopped = false;
 
         //*reset KILLER_MOVE and HISTORY_MOVE_SCORE tables
         for (int i = 0; i < 2; i++)
@@ -659,7 +995,7 @@ public:
         }
         else
         {
-            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << res.nodeCount;
+            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << Engine::nodeCount;
 
             //*print Principal variation line
             cout << " pv ";
@@ -671,18 +1007,27 @@ public:
                 if (i != Engine::PV_TABLE[0].size() - 1)
                     cout << " ";
             }
-
-            cout << "\nbestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+            cout << endl;
+            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
         }
     }
 
     //*find the best move upto given depth
     void inline searchPositionIterativeDeepening(int depth)
     {
-        long long totalNodes = 0;
+        // long long totalNodes = 0;
 
         //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
         Engine::resetTablesOfSearch();
+
+        long long currDepthNodeCount = 0;
+
+        /*
+         *   IMPORTANT: if the search was stopped because of time exceeding or any other reason, then best move should be the last depth search's best moove, don't
+         *               print the best move of the last incomplete search which was stopped
+         *
+         */
+        Move prevDepthSearchBestMove = Move::INVALID_MOVE;
 
         for (int currDepth = 1; currDepth <= depth; currDepth++)
         {
@@ -692,6 +1037,12 @@ public:
             //*each first start position at each search follow PV line
             MinimaxReturn res = negamax(currDepth, -50000, 50000, 0, true);
 
+            if (Engine::uciSearchInfo.stopped)
+            {
+                // cout << "stopped" << endl;
+                break;
+            }
+
             if (Engine::BEST_MOVE == Move::INVALID_MOVE)
             {
                 cout << "\n\nProblem searchPositionIterativeDeepening : INVALID_MOVE returned\n\n";
@@ -699,9 +1050,14 @@ public:
             }
             else
             {
-                totalNodes += res.nodeCount;
+                // totalNodes += res.nodeCount;
 
-                cout << "\ninfo score cp " << res.bestScore << " depth " << currDepth << " nodes " << res.nodeCount;
+                currDepthNodeCount = Engine::nodeCount - currDepthNodeCount;
+
+                cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - Engine::uciSearchInfo.starttime);
+
+                //*
+                prevDepthSearchBestMove = Engine::BEST_MOVE;
 
                 //*print Principal variation line
                 cout << " pv ";
@@ -716,11 +1072,22 @@ public:
                 cout << endl;
             }
         }
-        cout << "\nbestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
 
-        cout << "\nTotal Nodes of iterative deepening : " << totalNodes << endl;
+        /*
+         *   IMPORTANT: if the search was stopped because of time exceeding or any other reason, then best move should be the last depth search's best moove, don't
+         *               print the best move of the last incomplete search which was stopped
+         *
+         */
+        if (!this->uciSearchInfo.stopped)
+            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+        else
+            cout << "bestmove " << prevDepthSearchBestMove.getUCIMove() << endl;
+
+        cout << "\nTotal Nodes of iterative deepening : " << Engine::nodeCount << endl;
     }
 };
+
+long long Engine::nodeCount = 0;
 
 Move Engine::BEST_MOVE = Move::INVALID_MOVE;
 
@@ -972,3 +1339,8 @@ int Engine::HISTORY_MOVE_SCORE[12][64];
 //*Principal variation table : PV_TABLE[ply] = move list(principal vaiation line moves at ply )
 //* PV_TABLE[0][depth] = best move of the player at depth after completing the search
 MoveList Engine::PV_TABLE[MAX_DEPTH];
+
+//*=========================================================================================================================================
+//*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
+//*=========================================================================================================================================
+UCISearchInfo Engine::uciSearchInfo;

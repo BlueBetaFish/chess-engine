@@ -29,7 +29,7 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    bool debugMode = true;
+    bool debugMode = false;
 
     if (debugMode)
     {
@@ -47,17 +47,17 @@ int main()
         cout << "\n\n----------------------------------------------------------------------------\n\n";
 
         {
-            long startTime = UCI::getTimeInMilliSeconds();
+            long startTime = getTimeInMilliSeconds();
             engine.searchPosition(depthLimit);
-            long endTime = UCI::getTimeInMilliSeconds();
+            long endTime = getTimeInMilliSeconds();
             cout << "\n\nTime required for normal search:       " << (endTime - startTime) << " ms";
             cout << "\n\n----------------------------------------------------------------------------\n\n";
         }
 
         {
-            long long startTime = UCI::getTimeInMilliSeconds();
+            long long startTime = getTimeInMilliSeconds();
             engine.searchPositionIterativeDeepening(depthLimit);
-            long long endTime = UCI::getTimeInMilliSeconds();
+            long long endTime = getTimeInMilliSeconds();
             cout << "\n\nTime required for iterative deepening: " << (endTime - startTime) << " ms";
         }
         cout << "\n\n----------------------------------------------------------------------------\n\n";
@@ -76,6 +76,8 @@ int main()
         cout << endl
              << endl
              << endl;
+
+        cout << "\n=================================================END================================================================\n\n";
     }
     else
     {
