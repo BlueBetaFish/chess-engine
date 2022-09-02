@@ -710,10 +710,18 @@ public:
 
         //*if current player is in check(it is an interesting position and cant be ignored) , increase search depth if the king has been exposed into a check to avoid being mated
         int oldDepthLimit = depthLimit;
-        if (inCheck)
-            depthLimit++;
 
-        // long long nodeCount = 0;
+
+        /*
+         !There will be a bug, if you use this search extension(increase depthLimit if king is in check),
+         !if you do not implement three fold repetition checking
+         !because there the same position(with king in check) may repeat again and again, and the recursion will never terminate
+
+         *TODO: use this search extension(uncomment the lines), when you implement three fold repetition checking     
+        */
+        // if (inCheck)
+        //     depthLimit++;
+
 
         int maxScore = INT_MIN;
 
