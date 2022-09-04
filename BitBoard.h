@@ -659,7 +659,7 @@ private:
     static void initializeAllLookupTables()
     {
         //*TODO: uncomment the printer line after testing :)
-        cout << "\ninitializeAllLookupTables() called\n";
+        // cout << "\ninitializeAllLookupTables() called\n";
 
         // BitBoard::initializePrecomputedLookupTables();
         BitBoard::initializeSliderPieceAttackTables();

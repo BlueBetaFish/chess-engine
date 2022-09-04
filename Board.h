@@ -1,3 +1,95 @@
+/*
+
+=======================================================================================================
+--------------------------------------      API      --------------------------------------------------
+=======================================================================================================
+
+class Board
+{
+    //*Constructor
+    Board()
+
+    //*Returns current player
+    int getCurrentPlayer()
+
+    //*set current player to given "player"
+    void setCurrentPlayer(int player)
+
+    //*get the piece at given square (returns Piece::EMPTY_PIECE if there is no piece on the squareIndex)
+    int getPieceAtSquare(int squareIndex)
+
+    //*Removes the piece of given color from the given square 
+    void removePieceFromGivenSquareOfGivenColor(int squareIndex, int color)
+
+    //*returns the occupancy bitboard of white
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
+    BitBoard getWhiteOccupancyBitBoard()
+
+    //*returns the occupancy bitboard of black
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
+    BitBoard getBlackOccupancyBitBoard()
+
+    //*returns the occupancy bitboard of both players 
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
+    BitBoard getAllOccupancyBitBoard()
+
+    //*prints the board
+    //*if true argument is passed, then all the 12 different piece bitboards are printed
+    void print(bool printPieceBitBoards = false)
+
+    //*changes the board object and assigns the new board from fen
+    void initializeFromFenString(const string &fen)
+
+    //*checks if given square is attacked by given player(pseudo legal moves)
+     *Efficient Method to check :---------- if a square is attacked by a white bishop , then if a black bishop is on the square, it can also attack the white bishop
+     *So intuition is to get attack bitboards of all pieces at the given square of the given player and check if the same type of opposite player's
+     *piece is on any of the attackecd square, if yes, then that opposite piece can attack the square :)
+    bool isGivenSquareAttackedByGivenPlayer(int squareIndex, int attackerPlayer)
+
+    //*checks if current player is in check or not
+    bool isCurrentPlayerKingInCheck()
+
+    //*returns bitboard representing the squares being attacked by given "attackerPlayer"
+    //*unoptimized
+    BitBoard getAllAttackedSquaresByGivenPlayer(int attackerPlayer)
+
+    //*generates all pseudo legal moves of the given player and stores them in the passed "generatedMoves" as argument
+    void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, MoveList &generatedMoves)
+
+
+
+     * Executes the given move on the Board Object
+     *
+     *   If you want to execute the move, if it is only capture move (needed in Quiescence Search) , pass true as the 2nd argument (default value false)
+     * 
+     *   Returns true if the move is legal ,
+     *                else returns false if the move is pseudo legal (i.e, current player's king can be captured after the move) and also undo the move
+
+     * Implementation of the function: 
+     * 1. we store the board position as a backup. 
+     * 2. we execute the given move
+     * 3. if after executing the move, the opponent can capture the player's king, 
+     *    then roll back the move(using the previous backed up board position)
+     * 
+     * 
+    bool makeMove(const Move &move, bool onlyCaptureMove = false)
+
+    //*Debugging function: 
+    //*returns the number of leaf nodes upto given depth limit
+    long long perft_driver(int depthLimit)
+
+    //*Debugging function:
+    //*prints the number of leaf nodes upto given depth limit after the corresponding moves
+    long long perft_test(int depthLimit)
+
+}
+
+
+
+
+*/
+
+
 
 #pragma once
 
@@ -13,12 +105,14 @@ using namespace std;
 class Board
 {
 
-protected:
-    //*bitboards for each piece of each color
-    // BitBoard whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing;
-    // BitBoard blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing;
+//TODO: change public to protected
+public:
+    //* bitboards for each piece of each color
+    //*===================================================================================================
+    //* BitBoard whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing;
+    //* BitBoard blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing;
     //*Pieces enum : {P = 0, N = 1, B = 2, R = 3, Q = 4, K = 5, p = 6, n = 7, b = 8, r = 9, q = 10, k = 11, EMPTY_PIECE = 12}
-    BitBoard pieceBitBoards[12]; // size 12
+    BitBoard pieceBitBoards[12]; //* size 12, as there can be total 12 types of pieces of different colors
 
     //*side to move
     int currentPlayer;
@@ -30,6 +124,8 @@ protected:
     bool castlingRights[4];
 
 public:
+
+    //*Constructor: creates empty board
     Board()
     {
         for (int i = 0; i < 12; i++)
@@ -40,29 +136,40 @@ public:
         this->castlingRights[0] = this->castlingRights[1] = this->castlingRights[2] = this->castlingRights[3] = true;
     }
 
+    //*Returns current player
     inline int getCurrentPlayer()
     {
         return this->currentPlayer;
     }
 
+    //*set current player to given "player"
+    void setCurrentPlayer(int player)
+    {
+        this->currentPlayer = player;
+    }
+
+
     // *get the piece at given square (returns Piece::EMPTY_PIECE if there is no piece on the squareIndex)
     int inline getPieceAtSquare(int squareIndex)
     {
+        //*iterate through all piece bitboards, and check if there is any piece of any type
+        //*at the given square
         for (int piece = Piece::P; piece <= Piece::k; piece++)
         {
             if (this->pieceBitBoards[piece].getBitAt(squareIndex) == 1)
                 return piece;
         }
+
+        //*if the square is empty
         return Piece::EMPTY_PIECE;
     }
 
+    //*Removes the piece of given color from the given square 
     void removePieceFromGivenSquareOfGivenColor(int squareIndex, int color)
     {
-        // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
 
-        int n = 12;
-
+        //*initialize the start piece and end piece
         int startPiece = -1, endPiece = -1;
         if (color == WHITE)
         {
@@ -74,6 +181,8 @@ public:
             startPiece = Piece::p;
             endPiece = Piece::k;
         }
+
+        //*iterate through all piece bitboards and if there is any piece of the type at the given square remove it  
         for (int piece = startPiece; piece <= endPiece; piece++)
         {
             if (this->pieceBitBoards[piece].getBitAt(squareIndex) == 1)
@@ -84,52 +193,61 @@ public:
         }
     }
 
+    //*returns the occupancy bitboard of white
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
     BitBoard inline getWhiteOccupancyBitBoard()
     {
         U64 res = 0;
+
+        //*take the binary or of all the piece bitboards of the given color
         for (int piece = Piece::whitePawn; piece <= Piece::whiteKing; piece++)
             res |= this->pieceBitBoards[piece].getDecimalValue();
 
         return BitBoard(res);
     }
 
+    //*returns the occupancy bitboard of black
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
     BitBoard inline getBlackOccupancyBitBoard()
     {
         U64 res = 0;
+
+        //*take the binary or of all the piece bitboards of the given color
         for (int piece = Piece::blackPawn; piece <= Piece::blackKing; piece++)
             res |= this->pieceBitBoards[piece].getDecimalValue();
 
         return BitBoard(res);
     }
 
+    //*returns the occupancy bitboard of both players 
+    //*Occupancy bitboard: represents the bitboard containing all the pieces of the given color(white/black)
     BitBoard inline getAllOccupancyBitBoard()
     {
         U64 res = 0;
+
+        //*take the binary or of all the piece bitboards of the given color
         for (int piece = Piece::whitePawn; piece <= Piece::blackKing; piece++)
             res |= this->pieceBitBoards[piece].getDecimalValue();
 
         return BitBoard(res);
     }
 
+    //*prints the board
+    //*if true argument is passed, then all the 12 different piece bitboards are printed
     void inline print(bool printPieceBitBoards = false)
     {
         //*print piece board
         cout << "Piece Board: " << endl;
         for (int i = 0; i < 8; i++)
         {
-            // print rank number
             int rank = 8 - i;
-            // cout << rank << "    ";
-
             cout << "+---+---+---+---+---+---+---+---+" << endl;
 
             for (int j = 0; j < 8; j++)
             {
                 int file = j;
                 int index = i * 8 + j;
-
                 char piece = Piece::getASCIICodeOfPiece(this->getPieceAtSquare(index));
-
                 cout << "| ";
                 cout << (piece != '.' ? piece : ' ');
                 cout << " ";
@@ -147,9 +265,7 @@ public:
         string castlingRightsTemp = string((this->castlingRights[0] ? "K" : "-")) + (this->castlingRights[1] ? "Q" : "-") + (this->castlingRights[2] ? "k" : "-") + (this->castlingRights[3] ? "q" : "-");
         cout << "Castling Rights = " << castlingRightsTemp << endl;
 
-        cout << endl
-             << endl
-             << endl;
+        cout << "\n\n";
 
         if (printPieceBitBoards)
         {
@@ -164,11 +280,11 @@ public:
         }
     }
 
+
     // *changes the board object and assigns the new board from fen
     inline void initializeFromFenString(const string &fen)
     {
-        //* reset member fields ______________________________________________________________
-
+        //* reset member fields 
         for (int i = 0; i < 12; i++)
             this->pieceBitBoards[i] = 0ULL;
 
@@ -178,7 +294,7 @@ public:
         this->currentPlayer = WHITE;
         this->enPassantSquareIndex = -1;
 
-        //*update the positions of pieces according to fen string________________________________
+        //*update the positions of pieces according to fen string 
         int fenSize = fen.size();
         int k = 0;
 
@@ -188,8 +304,7 @@ public:
             if (isdigit(fen[k]))
             {
                 file += (fen[k] - '0');
-                // make these squares empty
-
+                //*make these squares empty
                 if (file > 9)
                     throw runtime_error("file > 9 inside initializeFromFenString() function");
             }
@@ -206,7 +321,7 @@ public:
             {
                 int pieceVal = Piece::getPieceValueFromASCII(fen[k]);
 
-                // if invalid piece character inside fen
+                //*if invalid piece character inside fen
                 if (pieceVal == -1)
                     throw runtime_error("invalid piece character of fen inside initializeFromFenString() function");
 
@@ -352,6 +467,7 @@ public:
         //*TODO: HAlf move and full move remaining
     }
 
+
     //*checks if given square is attacked by given player(pseudo legal moves)
     /*
      *Efficient Method to check :---------- if a square is attacked by a white bishop , then if a black bishop is on the square, it can also attack the white bishop
@@ -375,6 +491,7 @@ public:
         if (BitBoard::KING_ATTACK_TABLE[squareIndex].getDecimalValue() & (attackerPlayer == WHITE ? this->pieceBitBoards[Piece::K].getDecimalValue() : this->pieceBitBoards[Piece::k].getDecimalValue()))
             return true;
 
+        //*occupancy bitboard of both color pieces
         BitBoard allBlockers = this->getAllOccupancyBitBoard();
 
         //*check bishop attacks
@@ -394,15 +511,23 @@ public:
         return false;
     }
 
+    //*checks if current player is in check or not
     bool isCurrentPlayerKingInCheck()
     {
+        //*find the king square of the current player
         int kingSquareIndex = this->pieceBitBoards[this->currentPlayer == WHITE ? Piece::K : Piece::k].getFirstLeastSignificantBitIndexFromRight();
+
+        //*check if that square is attacked by opposite color pieces
         return this->isGivenSquareAttackedByGivenPlayer(kingSquareIndex, Piece::getOppositeColor(this->currentPlayer));
     }
+
+    //*returns bitboard representing the squares being attacked by given "attackerPlayer"
     //*unoptimized
     BitBoard getAllAttackedSquaresByGivenPlayer(int attackerPlayer)
     {
         BitBoard res;
+
+        //*iterate through all the squares and check if that square is being attacked by the given attackerPlayer
         for (int squareIndex = 0; squareIndex < 64; squareIndex++)
         {
             if (this->isGivenSquareAttackedByGivenPlayer(squareIndex, attackerPlayer))
@@ -412,16 +537,12 @@ public:
         return res;
     }
 
-    //*TODO: handle return of Move object list , and create Move class later
+    //*generates all pseudo legal moves of the given player and stores them in the passed "generatedMoves" as argument
     void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, MoveList &generatedMoves)
     {
-
-        // if (playerColor != WHITE && playerColor != BLACK)
-        //     throw runtime_error("wrong color inside generateAllMovesOfGivenPlayer() function\n");
         assert(playerColor == WHITE || playerColor == BLACK);
 
         int fromSquare, toSquare;
-
         int oppositeColor = Piece::getOppositeColor(playerColor);
         BitBoard currPlayerOccupancy = playerColor == WHITE ? this->getWhiteOccupancyBitBoard() : this->getBlackOccupancyBitBoard();
         BitBoard oppositePlayerOccupancy = oppositeColor == WHITE ? this->getWhiteOccupancyBitBoard() : this->getBlackOccupancyBitBoard();
@@ -439,8 +560,10 @@ public:
             pieceBitBoard = this->pieceBitBoards[Piece::P];
 
             //*extract the bits of pawns, and unset them one by one to iterate all pawn positions
+            //*Similar to Brian Kernighan’s Algorithm
             while (pieceBitBoard.getDecimalValue())
             {
+                //*find the right most set bit index
                 int leastSignificantSetBitIndex = pieceBitBoard.getFirstLeastSignificantBitIndexFromRight();
                 fromSquare = leastSignificantSetBitIndex;
 
@@ -448,6 +571,7 @@ public:
                 if (BitBoard::getRankOfSquareIndex(fromSquare) == 8)
                     throw runtime_error("\nwhite pawn cant be at 8th rank---from generateALlMovesOfGivenPlayer() function\n");
 
+                //*one step forward
                 toSquare = fromSquare - 8;
 
                 //*if to square is valid and toSquare is empty
@@ -463,6 +587,9 @@ public:
                         // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion" << endl;
                         // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion" << endl;
 
+
+                        //*there can be 4 types of promotions: queen, rook, bishop, knight.
+                        //*insert all moves
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::Q, false, false, false, false));
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::R, false, false, false, false));
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::B, false, false, false, false));
@@ -471,12 +598,12 @@ public:
                     else
                     {
                         //*--------------pawn push of one square-------------------------//
-                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << endl;
+                        // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << " ----> pawn push" << "\n";
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, -1, false, false, false, false));
 
                         //*------------double pawn push--------------------------------------//
                         //*dont forget to update enPassant square
-
+                        //*if the from square is the 2nd rank and the destination square is empty
                         if (BitBoard::getRankOfSquareIndex(fromSquare) == 2 && allOccupancy.getBitAt(toSquare - 8) == 0)
                         {
                             // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare - 8) << " ----> double pawn push" << endl;
@@ -491,6 +618,7 @@ public:
                 attackBitBoard = BitBoard::PAWN_ATTACK_TABLE[playerColor][fromSquare].getDecimalValue() & oppositePlayerOccupancy.getDecimalValue();
 
                 //*iterate pawn attack squares
+                //*similar to Brian Kernighan’s Algorithm
                 while (attackBitBoard.getDecimalValue())
                 {
                     int lestSignificantSetBitIndexOfAttackBitBoard = attackBitBoard.getFirstLeastSignificantBitIndexFromRight();
@@ -504,6 +632,7 @@ public:
                         // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "b ----> pawn promotion capture" << endl;
                         // cout << BitBoard::getAlgebraicCoordinateFromIndex(fromSquare) << BitBoard::getAlgebraicCoordinateFromIndex(toSquare) << "n ----> pawn promotion capture" << endl;
 
+                        //*ther can be 4 types of promotions: queen, rook, bishop, knight
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::Q, true, false, false, false));
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::R, true, false, false, false));
                         generatedMoves.push_back(Move(fromSquare, toSquare, Piece::P, Piece::B, true, false, false, false));
@@ -534,10 +663,11 @@ public:
                     }
                 }
 
-                //*Pop the lease significant set bit , to get the next set bit in next iteration
+                //*Pop the least significant set bit , to get the next set bit in next iteration
                 pieceBitBoard.unsetBitAt(leastSignificantSetBitIndex);
             }
         }
+        //*similar to white pawn
         else if (playerColor == BLACK)
         {
             pieceBitBoard = this->pieceBitBoards[Piece::p];
@@ -735,12 +865,13 @@ public:
         int tempPiecesSize = sizeof(tempPieces) / sizeof(tempPieces[0]);
         for (int i = 0; i < tempPiecesSize; i++)
         {
+            //*get the current piece(whether it is black or white)
             int currPiece = -1;
             if (playerColor == WHITE)
             {
                 currPiece = tempPieces[i];
             }
-            else // if black
+            else //*if black
             {
                 switch (tempPieces[i])
                 {
@@ -766,6 +897,8 @@ public:
 
             pieceBitBoard = this->pieceBitBoards[currPiece];
 
+            //*find indices of all pieces from the piece bitboard
+            //*similar to Brian Kernighan’s Algorithm
             while (pieceBitBoard.getDecimalValue())
             {
                 int leastSignificantSetBitIndex = pieceBitBoard.getFirstLeastSignificantBitIndexFromRight();
@@ -779,6 +912,7 @@ public:
                     attackBitBoard = BitBoard(BitBoard::getPieceAttacks(fromSquare, tempPieces[i]).getDecimalValue() & ~currPlayerOccupancy.getDecimalValue());
 
                 //*iterate the tooSquares of attackBitBoard
+                //*Similar to Brian Kernighan’s Algorithm: 
                 while (attackBitBoard.getDecimalValue())
                 {
                     int leastSignificantSetBitIndexOfAttackBitBoard = attackBitBoard.getFirstLeastSignificantBitIndexFromRight();
@@ -808,14 +942,25 @@ public:
     }
 
     /*
-     *   executes the given move on the Board Object
+     * Executes the given move on the Board Object
      *
      *   If you want to execute the move, if it is only capture move (needed in Quiescence Search) , pass true as the 2nd argument (default value false)
+     * 
      *   Returns true if the move is legal ,
      *                else returns false if the move is pseudo legal (i.e, current player's king can be captured after the move) and also undo the move
      */
+    /*
+     * Implementation of the function: 
+     * 1. we store the board position as a backup. 
+     * 2. we execute the given move
+     * 3. if after executing the move, the opponent can capture the player's king, 
+     *    then roll back the move(using the previous backed up board position)
+     * 
+     * 
+    */
     bool inline makeMove(const Move &move, bool onlyCaptureMove = false)
     {
+        //*if we only want the capture move to be executed and the given move is a non capture move, then return false
         if (onlyCaptureMove)
         {
             if (move.captureFlag)
@@ -839,6 +984,7 @@ public:
         //*------------------------Handle Capture Moves : Erase the captured piece from its position--------------------------*//
         if (move.captureFlag)
         {
+            //*remove opponent's piece from the toSquare
             this->removePieceFromGivenSquareOfGivenColor(move.toSquare, oppositeColor);
 
             //*-------------------------------Handle En passant Captures------------------------------------//
@@ -878,25 +1024,41 @@ public:
         {
             switch (move.toSquare)
             {
-            case g1:                                           //*white king side
-                this->pieceBitBoards[Piece::R].unsetBitAt(h1); // remove the rook
-                this->pieceBitBoards[Piece::R].setBitAt(f1);   // place rook at correct position
-                break;
+                //*white king sides    
+                case g1:
+                    //*remove the rook
+                    this->pieceBitBoards[Piece::R].unsetBitAt(h1); 
 
-            case c1:                                           //*white queen side
-                this->pieceBitBoards[Piece::R].unsetBitAt(a1); // remove the rook
-                this->pieceBitBoards[Piece::R].setBitAt(d1);   // place rook at correct position
-                break;
+                    //*place the rook at current positions
+                    this->pieceBitBoards[Piece::R].setBitAt(f1);   
+                    break;
 
-            case g8:                                           //*black king side
-                this->pieceBitBoards[Piece::r].unsetBitAt(h8); // remove the rook
-                this->pieceBitBoards[Piece::r].setBitAt(f8);   // place rook at correct position
-                break;
+                //*white queen side
+                case c1:                                           
+                    //*remove the rook
+                    this->pieceBitBoards[Piece::R].unsetBitAt(a1); 
+                    
+                    //*place rook at correct position
+                    this->pieceBitBoards[Piece::R].setBitAt(d1);   
+                    break;
 
-            case c8:                                           //*black queen side
-                this->pieceBitBoards[Piece::r].unsetBitAt(a8); // remove the rook
-                this->pieceBitBoards[Piece::r].setBitAt(d8);   // place rook at correct position
-                break;
+                //*black king side
+                case g8:                                           
+                    //*remove the rook
+                    this->pieceBitBoards[Piece::r].unsetBitAt(h8); 
+
+                    //*place rook at correct position
+                    this->pieceBitBoards[Piece::r].setBitAt(f8);   
+                    break;
+
+                //*black queen side
+                case c8:                                           
+                    //*remove the rook
+                    this->pieceBitBoards[Piece::r].unsetBitAt(a8); 
+
+                    //*place rook at correct position
+                    this->pieceBitBoards[Piece::r].setBitAt(d8);   
+                    break;
             }
 
             //*update castling rights
@@ -907,13 +1069,13 @@ public:
         }
 
         //*--------------------------Update castling rights if violated---------------------------------------------------//
-        //*if king is moved
+        //*if king is moved, the player cant castle
         if (move.pieceMoved == Piece ::K)
             this->castlingRights[0] = this->castlingRights[1] = false;
         else if (move.pieceMoved == Piece::k)
             this->castlingRights[2] = this->castlingRights[3] = false;
 
-        //*if rook moved or captured
+        //*if rook moved or captured, king can not castle on that side of the rook
         if (move.fromSquare == h1 || move.toSquare == h1)
             this->castlingRights[0] = false;
         if (move.fromSquare == a1 || move.toSquare == a1)
@@ -926,15 +1088,14 @@ public:
         //*--------------------------------CHANGE CURRENT PLAYER-------------------------------------------------------//
         this->currentPlayer = Piece::getOppositeColor(this->currentPlayer);
 
-        //*
-        //*
-        //*
-        //*
-        //*
-        //*-----------------------------------IF THE KING IS IN CHECK AFET MAKING THE MOVE, ROLL BACK -----------------------------------//
+     
+        //*-----------------------------------IF THE KING IS IN CHECK AFTER MAKING THE MOVE, ROLL BACK -----------------------------------//
         //*as the currentPlayer has been swapped , take care of that
         int kingSquareIndex = this->currentPlayer == WHITE ? this->pieceBitBoards[Piece::k].getFirstLeastSignificantBitIndexFromRight() : this->pieceBitBoards[Piece::K].getFirstLeastSignificantBitIndexFromRight();
+        
 
+        //*if after making the move, opponent can capture my king, then the move is not valid move
+        //*restore the backUpCopy and return false
         if (this->isGivenSquareAttackedByGivenPlayer(kingSquareIndex, this->currentPlayer))
         {
             *this = backupBoardBeforeMakingMove;
@@ -947,25 +1108,35 @@ public:
             return true;
     }
 
-    /*
-     *   returns the number of leaf nodes upto given depth limit
-     */
+    
+    //*Debugging function: 
+    //*returns the number of leaf nodes upto given depth limit
     long long perft_driver(int depthLimit)
     {
         if (depthLimit == 0)
-            return 1; // 1 leaf
+            return 1; //* 1 leaf
 
+        //*to count the total number of leaf nodes
         long long totalCount = 0;
+       
+        /*
+         * We keep a backup copy of the board
+         * for all pseudo legal moves, we check 
+         * after makign the move, if opponent can capture my king or not.
+         * If opponent can capture my king, then it is invalid move(do not count it)
+         * Else we count that move as legal move
+         * after executing each move, restore the board position from the backup 
+        */
 
         MoveList pseudoLegalMoves;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
+
+        //*before making move , copy the backup of current board so that we can unmake the move later
+        Board backupBoardBeforeMakingMove = *this;
+     
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
-
-            //*before making move , copy the backup of current board so that we can unmake the move later
-            Board backupBoardBeforeMakingMove = *this;
-
             // cout << "\nBoard : \n";
             // this->print();
 
@@ -976,34 +1147,44 @@ public:
             // cout << "\nafter making move : " << pseudoLegalMoves[i].fromSquare << "-->" << pseudoLegalMoves[i].toSquare << " : \n";
             // this->print();
 
+            //*increment leaf node count
             totalCount += this->perft_driver(depthLimit - 1);
 
-            //*unmake the move on the current baord
+            //*unmake the move on the current baord(by restoring the backeup copy of board)
             *this = backupBoardBeforeMakingMove;
         }
 
         return totalCount;
     }
 
-    /*
-     *   prints the number of leaf nodes upto given depth limit after the corresponding move
-     */
+    
+    //*Debugging function:
+    //*prints the number of leaf nodes upto given depth limit after the corresponding moves
     long long perft_test(int depthLimit)
     {
         if (depthLimit == 0)
-            return 1; // 1 leaf
+            return 1; //* 1 leaf
 
         long long totalCount = 0;
 
+        /*
+         * We keep a backup copy of the board
+         * for all pseudo legal moves, we check 
+         * after makign the move, if opponent can capture my king or not.
+         * If opponent can capture my king, then it is invalid move(do not count it)
+         * Else we count that move as legal move
+         * after executing each move, restore the board position from the backup 
+        */
+    
         MoveList pseudoLegalMoves;
         this->generateAllPseudoLegalMovesOfGivenPlayer(this->currentPlayer, pseudoLegalMoves);
         int pseudoLegalMovesSize = pseudoLegalMoves.size();
+
+        //*before making move , copy the backup of current board so that we can unmake the move later
+        Board backupBoardBeforeMakingMove = *this;
+
         for (int i = 0; i < pseudoLegalMovesSize; i++)
         {
-
-            //*before making move , copy the backup of current board so that we can unmake the move later
-            Board backupBoardBeforeMakingMove = *this;
-
             //*if the pseudo legal move is not legal , dont consider it
             if (!this->makeMove(pseudoLegalMoves[i]))
                 continue;
@@ -1014,11 +1195,11 @@ public:
             //*unmake the move on the current baord
             *this = backupBoardBeforeMakingMove;
 
+            //*print the number of leaf nodes after the move
             cout << "move : " << pseudoLegalMoves[i].getUCIMove() << "  ,  No of leaves : " << numberOfLeavesAfterCurrMove << endl;
         }
 
         cout << "\nTotal No of leaves : " << totalCount << endl;
-
         return totalCount;
     }
 

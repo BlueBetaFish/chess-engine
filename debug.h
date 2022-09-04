@@ -6,27 +6,21 @@ using namespace std;
 
 #include "engine.h"
 
+#define START_POSITION_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
 
-//*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
-//*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
-//*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
-// Engine engine(START_POSITION_FEN);
-//*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
-//*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 
-//*----------------------------------------FUNCTIONS FOR UCI----------------------------------------------------------------------------------*//
-
-class UCI
+class Debug
 {
+    public:
+
     Engine engine;
 
-public:
-    UCI()
+    Debug()
     {
         engine.initializeFromFenString(START_POSITION_FEN);
     }
 
-private:
+
     // //* returns move object from moveString(algebric notation) (e.g. "e7e8q")
     Move inline parseMove(const string &moveString)
     {
@@ -157,7 +151,7 @@ private:
             }
         }
 
-        this->engine.printBoard();
+        // this->engine.print();
     }
 
     /*
@@ -265,11 +259,10 @@ private:
             depth = 64;
 
         // print debug info
-        // printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-        //        time, Engine::uciSearchInfo.starttime, Engine::uciSearchInfo.stoptime, depth, Engine::uciSearchInfo.timeset);
+        // printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time, Engine::uciSearchInfo.starttime, Engine::uciSearchInfo.stoptime, depth, Engine::uciSearchInfo.timeset);
 
         // *search position for best move
-        this->engine.searchPositionIterativeDeepening(depth);
+        this->engine.searchPositionIterativeDeepening(depth, true);
     }
 
     /*
@@ -291,8 +284,10 @@ public:
         char input[200];
 
         // print this->engine info
-        cout << "id name BlueBetaFish\n";
-        
+        // cout << "id name BlueBetaFish\n";
+        // cout << "id name Sourashis Mondal\n";
+        // cout << "uciok\n";
+
         // main loop
         while (1)
         {
@@ -344,6 +339,7 @@ public:
             {
                 // print this->engine info
                 cout << "id name BlueBetaFish\n";
+                cout << "id name Sourashis Mondal\n";
                 cout << "uciok\n";
             }
         }
