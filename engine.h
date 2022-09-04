@@ -156,7 +156,7 @@ public:
 
             //*TODO: uncomment this after you are finished testing(with the CPH JUDGE extension)
             // tell engine to stop calculating
-            // stopped = true;
+            stopped = true;
 
             // loop to read bytes from STDIN
             do

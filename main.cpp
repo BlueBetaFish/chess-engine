@@ -30,7 +30,7 @@ int main()
     initializeTables();
     //*---------------IMPORTANT----------------------------------------*//
 
-    bool debugMode = true;
+    bool debugMode = false;
 
     if (debugMode)
     {
