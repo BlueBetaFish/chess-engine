@@ -1,0 +1,2 @@
+1. In Bitboard class, move the static variable assigning of lookupTablesInitialized inside initializeAllLookupTables() function.
+2. 
