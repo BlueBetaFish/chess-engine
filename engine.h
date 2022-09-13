@@ -20,7 +20,7 @@ using namespace std;
 //*Minimum number of moves ,after which other moves can be reduced
 #define FULL_DEPTH_MOVES 4
 
-//*min depth after which moves can be reduced (needed in Late Move Reduction)
+//*min depth after which moves can be reduced
 #define REDUCTION_DEPTH_LIMIT 3
 
 struct MinimaxReturn
@@ -153,8 +153,6 @@ public:
         // "listen" to STDIN
         if (input_waiting())
         {
-
-            //*TODO: uncomment this after you are finished testing(with the CPH JUDGE extension)
             // tell engine to stop calculating
             stopped = true;
 
@@ -184,7 +182,7 @@ public:
                     quit = true;
                 }
 
-                // match UCI "stop" command
+                // // match UCI "stop" command
                 else if (!strncmp(input, "stop", 4))
                 {
                     // tell engine to terminate exacution
@@ -211,23 +209,15 @@ public:
 
 class Engine 
 {
-    //*current board position
-    Board board;
-
-    //*Number of nodes searched
-    long long nodeCount;
+    //*current baord position
+    Board boardPosition;
 
     //*bestMove after a search
     Move BEST_MOVE;
-
-public:
-    //*For UCI time management 
-    UCISearchInfo uciSearchInfo;
     
-private:
-    //*=================================================================================================
-    //*                                     STATIC VARIABLES
-    //*=================================================================================================
+    //*Number of nodes searched
+    long long nodeCount;
+
     
     //*materialValue[piece]
     static int materialValue[12];
@@ -252,38 +242,49 @@ private:
     //*Principal variation table
     static MoveList PV_TABLE[MAX_DEPTH];
 
-    
 public:
-    Engine(const string &fen = START_POSITION_FEN)
+    //*=========================================================================================================================================
+    //*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
+    //*=========================================================================================================================================
+    static UCISearchInfo uciSearchInfo;
+
+public:
+    Engine()
     {
-        this->board.initializeFromFenString(fen);
         nodeCount = 0;
         BEST_MOVE = Move::INVALID_MOVE;
     }
 
-    void initializeFromFenString(const string& fen)
+    Engine(string fen)
     {
-        this->board.initializeFromFenString(fen);
+        this->boardPosition.initializeFromFenString(fen);
+        nodeCount = 0;
+        BEST_MOVE = Move::INVALID_MOVE;
+    }
+    
+    void initializeFromFenString(const string &fen)
+    {
+        boardPosition.initializeFromFenString(fen);
     }
 
     int getCurrentPlayer()
     {
-        return this->board.getCurrentPlayer();
+        return this->boardPosition.currentPlayer;
     }
 
     void generateAllPseudoLegalMovesOfGivenPlayer(int playerColor, MoveList &generatedMoves)
     {
-        this->board.generateAllPseudoLegalMovesOfGivenPlayer(playerColor, generatedMoves);
+        boardPosition.generateAllPseudoLegalMovesOfGivenPlayer(playerColor, generatedMoves);    
+    }
+    
+    bool makeMove(const Move &move, bool onlyCaptureMove = false)
+    {
+        return boardPosition.makeMove(move, onlyCaptureMove);
     }
 
-    void makeMove(const Move &move, bool onlyCaptureMove = false)
+    void inline print()
     {
-        this->board.makeMove(move, onlyCaptureMove );
-    }
-
-    void inline printBoard()
-    {
-        this->board.print();
+        this->boardPosition.print();
     }
 
     void printPositionalScores()
@@ -360,12 +361,12 @@ public:
             //*if the move was enpassant , then toSquare would be empty, so assign pawn
             if (move.enPassantFlag)
             {
-                capturedPiece = this->board.getCurrentPlayer() == WHITE ? Piece::p : Piece::P;
+                capturedPiece = this->boardPosition.currentPlayer == WHITE ? Piece::p : Piece::P;
             }
             else
             {
                 int startPiece = -1, endPiece = -1;
-                if (this->board.getCurrentPlayer() == WHITE)
+                if (this->boardPosition.currentPlayer == WHITE)
                 {
                     startPiece = Piece::p;
                     endPiece = Piece::k;
@@ -378,7 +379,7 @@ public:
 
                 for (int piece = startPiece; piece <= endPiece; piece++)
                 {
-                    if (this->board.pieceBitBoards[piece].getBitAt(move.toSquare) == 1)
+                    if (this->boardPosition.pieceBitBoards[piece].getBitAt(move.toSquare) == 1)
                     {
                         capturedPiece = piece;
                         break;
@@ -469,7 +470,7 @@ public:
      */
     long long inline perft_driver(int depthLimit)
     {
-        return board.perft_driver(depthLimit);
+        return boardPosition.perft_driver(depthLimit);
     }
 
     /*
@@ -479,7 +480,7 @@ public:
     {
         // long long startTime = Engine::getTimeInMilliSeconds();
 
-        long long res = board.perft_test(depthLimit);
+        long long res = boardPosition.perft_test(depthLimit);
 
         // long long endTime = Engine::getTimeInMilliSeconds();
         cout << "\nTotal Number of leaves upto depth = " << depthLimit << "  =  " << res << endl;
@@ -501,7 +502,7 @@ public:
         for (int piece = Piece::P; piece <= Piece::k; piece++)
         {
 
-            pieceBitBoard = this->board.pieceBitBoards[piece];
+            pieceBitBoard = this->boardPosition.pieceBitBoards[piece];
 
             while (pieceBitBoard.getDecimalValue())
             {
@@ -522,7 +523,7 @@ public:
             }
         }
 
-        return this->board.getCurrentPlayer() == WHITE ? score : -score;
+        return this->boardPosition.currentPlayer == WHITE ? score : -score;
     }
 
     /*
@@ -537,14 +538,14 @@ public:
          * or time has ended
          *
          */
-        if ((Engine::nodeCount & 2047) == 0)
+        if ((nodeCount & 2047) == 0)
         {
             //*check if time is up or there is any interrupt from the GUI
             Engine::uciSearchInfo.communicateWithGUI();
         }
 
         //*increment searched nodes counter
-        Engine::nodeCount++;
+        nodeCount++;
 
         int currScore = this->staticEvaluation();
 
@@ -560,31 +561,31 @@ public:
 
         //*generate all pseudo legal moves
         MoveList moveList;
-        this->board.generateAllPseudoLegalMovesOfGivenPlayer(this->board.getCurrentPlayer(), moveList);
+        this->boardPosition.generateAllPseudoLegalMovesOfGivenPlayer(this->boardPosition.currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
         this->sortMoveList(moveList, ply, false); //*quiscence search is not following PV line
 
-        Board backUpCopyOfBoard = this->board;
+        Board backUpCopyOfBoard = boardPosition;
 
+        int moveListSize = moveList.size();
 
         int maxScore = currScore;
 
-        int moveListSize = moveList.size();
         for (int i = 0; i < moveListSize; i++)
         {
             Move move = moveList[i];
             //*if making this move lets opponent capture our king , dont consider it
 
             //*--------------------------------------------------IMPORTANT: only make the capture moves in QUIESCENCE SEARCH--------------------------------------------------
-            if (!this->board.makeMove(move, true))
+            if (!this->boardPosition.makeMove(move, true))
                 continue;
 
             MinimaxReturn currReturnedVal = this->quiescenceSearch(-beta, -alpha, ply + 1);
             int currScore = -currReturnedVal.bestScore;
 
             //*restore board
-            this->board = backUpCopyOfBoard;
+            boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
             if (Engine::uciSearchInfo.stopped)
@@ -619,7 +620,7 @@ public:
          * or time has ended
          *
          */
-        if ((Engine::nodeCount & 2047) == 0)
+        if ((nodeCount & 2047) == 0)
         {
             //*check if time is up or there is any interrupt from the GUI
             Engine::uciSearchInfo.communicateWithGUI();
@@ -633,26 +634,18 @@ public:
         }
 
         //*increment nodes count
-        Engine::nodeCount++;
+        nodeCount++;
 
         long long legalMoves = 0;
 
-        bool inCheck = this->board.isCurrentPlayerKingInCheck();
+        bool inCheck = this->boardPosition.isCurrentPlayerKingInCheck();
 
         //*if current player is in check(it is an interesting position and cant be ignored) , increase search depth if the king has been exposed into a check to avoid being mated
         int oldDepthLimit = depthLimit;
+        if (inCheck)
+            depthLimit++;
 
-
-        /*
-         !There will be a bug, if you use this search extension(increase depthLimit if king is in check),
-         !if you do not implement three fold repetition checking
-         !because there the same position(with king in check) may repeat again and again, and the recursion will never terminate
-
-         *TODO: use this search extension(uncomment the lines), when you implement three fold repetition checking     
-        */
-        // if (inCheck)
-        //     depthLimit++;
-
+        // long long nodeCount = 0;
 
         int maxScore = INT_MIN;
 
@@ -660,7 +653,7 @@ public:
         int searchedMoveCount = 0;
 
         //*preserve board state to restore the board after executing each move
-        Board backUpCopyOfBoard = this->board;
+        Board backUpCopyOfBoard = boardPosition;
 
         // TODO: uncomment NULL MOVE PRUNING , when you understand and implement properly
 
@@ -671,8 +664,8 @@ public:
         if (depthLimit >= 3 && !inCheck && ply != 0)
         {
             //*make null move( Null Move : you do not play any move and let the opponent play her move)
-            this->board.setCurrentPlayer( Piece::getOppositeColor(this->board.getCurrentPlayer()));
-            this->board.enPassantSquareIndex = -1; //*IMPORTANT: reset enPassant square
+            this->boardPosition.currentPlayer = Piece::getOppositeColor(this->boardPosition.currentPlayer);
+            this->boardPosition.enPassantSquareIndex = -1; //*IMPORTANT: reset enPassant square
 
             //*search null move with reduced depthLimit to find beta cut offs
             //*here alpha = beta - 1
@@ -680,7 +673,7 @@ public:
             int currScore = -currReturnVal.bestScore;
 
             //*restore board
-            this->board = backUpCopyOfBoard;
+            boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
             if (Engine::uciSearchInfo.stopped)
@@ -696,11 +689,12 @@ public:
 
         //*generate all pseudo legal moves
         MoveList moveList;
-        this->board.generateAllPseudoLegalMovesOfGivenPlayer(this->board.getCurrentPlayer(), moveList);
+        this->boardPosition.generateAllPseudoLegalMovesOfGivenPlayer(this->boardPosition.currentPlayer, moveList);
 
         //*sort moves from good to bad for more alpha beta pruning
         this->sortMoveList(moveList, ply, isCurrNodeFollowingPVLine);
 
+        int moveListSize = moveList.size();
 
         //*if the current node is not following the pv line, then its children nodes will not follow pv line,
         //*but if the current node is following the pv line, then that children which is obtained by executing the PV move, will follow pv line
@@ -710,13 +704,12 @@ public:
         //*Learn about Principal Variation Search : https://web.archive.org/web/20071030220825/http://www.brucemo.com/compchess/programming/pvs.htm
         // bool foundPVNode = false;
 
-        int moveListSize = moveList.size();
         for (int i = 0; i < moveListSize; i++)
         {
             Move move = moveList[i];
 
             //*if making this move lets opponent capture our king , dont consider it
-            if (!this->board.makeMove(move))
+            if (!this->boardPosition.makeMove(move))
                 continue;
 
             //*if the node(position) was following PV line , and the move is pv move then enable isCurrNodeFollowingPVLine for the children nodes of this move, else disable isCurrNodeFollowingPVLine since other nodes are not following the pv line
@@ -809,7 +802,7 @@ public:
             //*----------------------------------PRINCIPAL VARIATION SEARCH END-------------------------------------------------------------//
 
             //*restore board
-            this->board = backUpCopyOfBoard;
+            boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
             if (Engine::uciSearchInfo.stopped)
@@ -849,7 +842,7 @@ public:
                 Engine::PV_TABLE[ply].setSize(oldDepthLimit);
 
                 if (ply == 0)
-                    Engine::BEST_MOVE = move; //*current move is the best move
+                    BEST_MOVE = move; //*current move is the best move
             }
 
             //*beta cutoff / fail high (move fails as it is too good (i.e, alpha >= beta) )
@@ -893,7 +886,6 @@ public:
     void inline resetTablesOfSearch()
     {
         nodeCount = 0;
-
         BEST_MOVE = Move::INVALID_MOVE;
 
         //*TODO:
@@ -923,18 +915,18 @@ public:
     void inline searchPosition(int depth)
     {
         //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
-        Engine::resetTablesOfSearch();
+        resetTablesOfSearch();
 
         MinimaxReturn res = negamax(depth, -50000, 50000, 0, true);
 
-        if (Engine::BEST_MOVE == Move::INVALID_MOVE)
+        if (BEST_MOVE == Move::INVALID_MOVE)
         {
             cout << "\n\nProblem searchPostion : INVALID_MOVE returned\n\n";
             return;
         }
         else
         {
-            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << Engine::nodeCount;
+            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << nodeCount;
 
             //*print Principal variation line
             cout << " pv ";
@@ -947,17 +939,17 @@ public:
                     cout << " ";
             }
             cout << endl;
-            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+            cout << "bestmove " << BEST_MOVE.getUCIMove() << endl;
         }
     }
 
     //*find the best move upto given depth
-    void inline searchPositionIterativeDeepening(int depth, bool debugMode = false)
+    void inline searchPositionIterativeDeepening(int depth)
     {
         // long long totalNodes = 0;
 
         //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
-        Engine::resetTablesOfSearch();
+        resetTablesOfSearch();
 
         long long currDepthNodeCount = 0;
 
@@ -970,7 +962,7 @@ public:
 
         for (int currDepth = 1; currDepth <= depth; currDepth++)
         {
-            //*TODO: comment this
+            //TODO: comment this
             // Engine::resetTablesOfSearch();
 
             //*each first start position at each search follow PV line
@@ -982,7 +974,7 @@ public:
                 break;
             }
 
-            if (Engine::BEST_MOVE == Move::INVALID_MOVE)
+            if (BEST_MOVE == Move::INVALID_MOVE)
             {
                 cout << "\n\nProblem searchPositionIterativeDeepening : INVALID_MOVE returned\n\n";
                 return;
@@ -991,27 +983,24 @@ public:
             {
                 // totalNodes += res.nodeCount;
 
-                currDepthNodeCount = Engine::nodeCount - currDepthNodeCount;
-                prevDepthSearchBestMove = Engine::BEST_MOVE;
+                currDepthNodeCount = nodeCount - currDepthNodeCount;
 
-                if(!debugMode)
+                cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - Engine::uciSearchInfo.starttime);
+
+                //*
+                prevDepthSearchBestMove = BEST_MOVE;
+
+                //*print Principal variation line
+                cout << " pv ";
+                //*TODO: print pv moves
+                for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
                 {
-                    cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - Engine::uciSearchInfo.starttime);
+                    cout << Engine::PV_TABLE[0][i].getUCIMove();
 
-                    //*
-
-                    //*print Principal variation line
-                    cout << " pv ";
-                    //*TODO: print pv moves
-                    for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
-                    {
-                        cout << Engine::PV_TABLE[0][i].getUCIMove();
-
-                        if (i != Engine::PV_TABLE[0].size() - 1)
-                            cout << " ";
-                    }
-                    cout << endl;
+                    if (i != Engine::PV_TABLE[0].size() - 1)
+                        cout << " ";
                 }
+                cout << endl;
             }
         }
 
@@ -1021,30 +1010,29 @@ public:
          *
          */
         if (!this->uciSearchInfo.stopped)
-            cout << "bestmove " << Engine::BEST_MOVE.getUCIMove() << endl;
+            cout << "bestmove " << BEST_MOVE.getUCIMove() << endl;
         else
             cout << "bestmove " << prevDepthSearchBestMove.getUCIMove() << endl;
 
-        if(!debugMode)
-            cout << "\nTotal Nodes of iterative deepening : " << Engine::nodeCount << endl;
+        cout << "\nTotal Nodes of iterative deepening : " << nodeCount << endl;
     }
 };
 
 
 
 int Engine::materialValue[12] = {
-    100,    //* white pawn value(P)
-    300,    //* white knight value(N)
-    350,    //* white bishop value(B)
-    500,    //* white rook value(R)
-    1000,   //* white queen value(Q)
-    10000,  //* white king value(K)
-    -100,   //* black pawn value(p)
-    -300,   //* black knight value(n)
-    -350,   //* black bishop value(b)
-    -500,   //* black rook value(r)
-    -1000,  //* black queen value(q)
-    -10000, //* black king value(k)
+    100,    // white pawn value(P)
+    300,    // white knight value(N)
+    350,    // white bishop value(B)
+    500,    // white rook value(R)
+    1000,   // white queen value(Q)
+    10000,  // white king value(K)
+    -100,   // black pawn value(p)
+    -300,   // black knight value(n)
+    -350,   // black bishop value(b)
+    -500,   // black rook value(r)
+    -1000,  // black queen value(q)
+    -10000, // black king value(k)
 };
 
 int Engine::positionalScore[12][64] =
@@ -1226,16 +1214,16 @@ int Engine::mirrorIndex[128] = {
 };
 
 /*
-*                   Pawn Knight Bishop   Rook  Queen   King (Victims)
-*    (Attackers)
-*       Pawn        105    205    305    405    505    605
-*       Knight      104    204    304    404    504    604
-*       Bishop      103    203    303    403    503    603
-*       Rook        102    202    302    402    502    602
-*       Queen       101    201    301    401    501    601
-*       King        100    200    300    400    500    600
-*   
-*   
+                Pawn Knight Bishop   Rook  Queen   King (Victims)
+
+    Pawn        105    205    305    405    505    605
+    Knight      104    204    304    404    504    604
+    Bishop      103    203    303    403    503    603
+    Rook        102    202    302    402    502    602
+    Queen       101    201    301    401    501    601
+    King        100    200    300    400    500    600
+(Attackers)
+
 */
 //* MVV_LVA_MOVE_SCORE[attacker_piece][victim_piece] = returns the relative score of a move which captures the victim_piece using attacker_piece
 int Engine::MVV_LVA_MOVE_SCORE[12][12] =
@@ -1265,18 +1253,23 @@ int Engine::HISTORY_MOVE_SCORE[12][64];
 
 /*
 * For example : for depth 4 , PV_TABLE:
-*
-*    ply
-*    |
-*    |
-*    V
-*    0  ---> m4 m3 m2 m1
-*    1  ---> m3 m2 m1
-*    2  ---> m2 m1
-*    3  ---> m1
-*
-*
+
+    ply
+    |
+    |
+    V
+    0  ---> m4 m3 m2 m1
+    1  ---> m3 m2 m1
+    2  ---> m2 m1
+    3  ---> m1
+
+
 */
 //*Principal variation table : PV_TABLE[ply] = move list(principal vaiation line moves at ply )
 //* PV_TABLE[0][depth] = best move of the player at depth after completing the search
 MoveList Engine::PV_TABLE[MAX_DEPTH];
+
+//*=========================================================================================================================================
+//*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
+//*=========================================================================================================================================
+UCISearchInfo Engine::uciSearchInfo;

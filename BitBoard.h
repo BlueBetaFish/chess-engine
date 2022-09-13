@@ -1,177 +1,3 @@
-/*
-=======================================================================================================
---------------------------------------      API      --------------------------------------------------
-=======================================================================================================
-
-class BitBoard
-{
-    //*constructor
-    //*Important : For creating Normal BitBoard objects to use , 
-    //*never pass false as argument "initializeLookupTables" ---> this argument is for 
-    //*internal look up table initialization to stop infinite recursive calls
-    BitBoard(U64 value = 0ULL, bool initializeLookupTables = true)
-
-    //*returns the index of the file of the given index(example: a,b,c,d,e,f,g,h)
-    static char getFileOfSquareIndex(int index)
-
-    //*returns the index of the rank of the given index(example: 1,2,3,4,5,6,7,8)
-    static int getRankOfSquareIndex(int index)
-
-    //*returns index from given rank and file 
-    //*rank in [1,8] , file in ['a', 'h'], index in [0, 63]
-    static int  getIndexFromRankAndFile(int rank, char file)
-    
-
-    //*returns index from row and column number
-    //*row and column numbers are 0 based
-    static int  getIndexFromRowAndColumnNumbers(int row, int column)
-
-
-    //*returns the algebraic coordinate from index(eg: b2, g4,....)
-    static std::string  getAlgebraicCoordinateFromIndex(int index)
-    
-    //*converts the decimal value of the bitboard to string
-    string  to_string()
-
-    //*checks if given index is in [0,63] or not
-    //* Dont use these 2 functions after testing, to reduce number of function calls
-    static bool  isSquareIndexValid(int squareIndex)
-    
-    //*checks if given index is in [0,63] or not
-    static void  checkSquareIndexValidity(int squareIndex)
-    
-    //*returns the decimal value of the bitboard
-    U64 getDecimalValue() const
-    
-    //*returns the bit(0 or 1) at the given index
-    int  getBitAt(int squareIndex) const
-    
-    //*sets the bit at the given index
-    void  setBitAt(int squareIndex)
-    
-    //*toggles the bit at given index
-    void  toggleBitAt(int squareIndex)
-    
-    //*unsets the bit at given index
-    void  unsetBitAt(int squareIndex)
-    
-    //*returns the number of set bits of the bitboard
-    //*Brian Kernighan’s Algorithm
-    int countSetBits() const
-    
-    //*returns the least significant bit index( in [0,63] if there is set bit) from right
-    //*if there is no set bit in bitboard, then it returns -1
-    int getFirstLeastSignificantBitIndexFromRight() const
-    
-    //*prints the bitboard, without the extra fancy boxes
-    void printWithoutBoxes() const
-    
-    //*prints the bitbaord
-    void print(bool withZeros = false) const
-    
-
-    *    Example: 
-    *        Suppose there is a white pawn on d4.
-    *        Attacked squares are: c5, e5
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   | P |   |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    *
-    //*returns the attack bitbaord of pawn of given color from given square index
-    static BitBoard getPawnAttacks(int squareIndex, int playerColor)
-    
-
-    *    Example: 
-    *        Suppose there is a knight on d4.
-    *        Attacked squares are: b5, b3, c6, c2, 36, e2, f5, f3
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   | N |   |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    //*returns the attack bitbaord of knight of given color from given square index
-    static BitBoard  getKnightAttacks(int squareIndex)
-
-
-
-    
-    *    Example: 
-    *        Suppose there is a king on d4.
-    *        Attacked squares are: c5, c4, c3, d5, d3, e5, e5, e3
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | 1 | 1 |   |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | K | 1 |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | 1 | 1 |   |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    //*returns the attack bitbaord of king of given color from given square index
-    static BitBoard getKingAttacks(int squareIndex)
-
-    //*Finds bishop attacks assuming current board occupancy as "blockers"
-    static BitBoard getBishopAttacks(int squareIndex, const BitBoard &blockers)
-
-    //*Finds rook attacks assuming current board occupancy as "blockers"
-    static BitBoard getRookAttacks(int squareIndex, const BitBoard &blockers)
-
-    //*Finds queen attacks assuming current board occupancy as "blockers"
-    static BitBoard getQueenAttacks(int squareIndex, const BitBoard &blockers)
-
-    
-     *finds the attacks of given piece from given square
-     *Dont Forget to pass occupancy for slider pieces
-     
-    static BitBoard getPieceAttacks(int squareIndex, int piece, const BitBoard &occupancy = BitBoard(0ULL))
-}
-
-*/
-
-
 #pragma once
 
 #include "neededHeaders.h"
@@ -202,16 +28,9 @@ using namespace std;
 */
 class BitBoard
 {
-private:    
-    //*64 bit variable to store the information of chess board with 64 squares
     U64 value;
 
-
     //*---------------------lookup tables-------------------------------*//
-    
-    //*we will initialize the lookup tables once for the whole class.
-    //*so this is a flag variable to check if the lookup tables are 
-    //*already initialized or not. If not, we will initialize them
     static bool lookupTablesInitialized;
 
     static BitBoard BISHOP_ATTACK_MASK[64];
@@ -222,52 +41,21 @@ private:
     static U64 ROOK_MAGIC_NUMBER[64];
 
 public:
-
-    //*---------------attack tables for non sliding pieces--------------
-    /*
-    *    Example: 
-    *        Suppose there is a knight on d4.
-    *        Attacked squares are: b5, b3, c6, c2, 36, e2, f5, f3
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *        
-    *        Using the attackTables we can efficiently get the attacked squares of the pieces.
-    *        And we will take the binary and with the 1's complement of occupancy bitboard of current player,
-    *        which will give us the valid moves of the piece
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   | N |   |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    */
     static BitBoard PAWN_ATTACK_TABLE[2][64];
     static BitBoard KNIGHT_ATTACK_TABLE[64];
     static BitBoard KING_ATTACK_TABLE[64];
 
-    //* BISHOP_ATTACK_TABLE[squareIndex][occupancyBitBoard], size = 64 * 512 (----to be initialized-------)
+    //* BISHOP_ATTACK_TABLE[squareIndex][occupancyBitBoard], size = 64 * 512 (--------------------------- to be initialized---------------------------)
     static vector<vector<BitBoard>> BISHOP_ATTACK_TABLE; // *size = 64 * 512
 
-    //* ROOK_ATTACK_TABLE[squareIndex][occupancyBitBoard] , size = 64 * 4096 (----to be initialized-------)
+    //* ROOK_ATTACK_TABLE[squareIndex][occupancyBitBoard] , size = 64 * 4096 (--------------------------- to be initialized---------------------------)
     static vector<vector<BitBoard>> ROOK_ATTACK_TABLE; //*size = 64 * 4096
 
 public:
     //*-------------------------------Constructor----------------------------------------*//
-    //*Important : For creating Normal BitBoard objects to use , 
-    //*never pass false as argument "initializeLookupTables" ---> this argument is for 
-    //*internal look up table initialization to stop infinite recursive calls
+
+    //*Important : For creating Normal BitBoard objects to use , never pass false as argument "initializeLookupTables" ---> this argument is for internal look up table initialization to stop infinite recursive calls
+
     BitBoard(U64 value = 0ULL, bool initializeLookupTables = true)
     {
         this->value = value;
@@ -283,74 +71,64 @@ public:
             }
         }
     }
-    
-    //*returns the index of the file of the given index(example: a,b,c,d,e,f,g,h)
+
     static char inline getFileOfSquareIndex(int index)
     {
         return 'a' + index % 8;
     }
 
-    //*returns the index of the rank of the given index(example: 1,2,3,4,5,6,7,8)
     static int inline getRankOfSquareIndex(int index)
     {
         return 8 - (index / 8);
     }
 
-    //*returns index from given rank and file 
-    //*rank in [1,8] , file in ['a', 'h'], index in [0, 63]
+    //*rank in [1,8] and file in ['a', 'h']
     static int inline getIndexFromRankAndFile(int rank, char file)
     {
         return (8 - rank) * 8 + (file - 'a');
     }
 
-    //*returns index from row and column number
     // *row and column numbers are 0 based
     static int inline getIndexFromRowAndColumnNumbers(int row, int column)
     {
         return row * 8 + column;
     }
 
-    //*returns the algebraic coordinate from index(eg: b2, g4,....)
     static std::string inline getAlgebraicCoordinateFromIndex(int index)
     {
         return BitBoard::getFileOfSquareIndex(index) + std::to_string(BitBoard::getRankOfSquareIndex(index));
     }
 
-    //*converts the decimal value of the bitboard to string
     string inline to_string()
     {
         return std::to_string(this->value);
     }
 
-    //*checks if given index is in [0,63] or not
     //* Dont use these 2 functions after testing, to reduce number of function calls
     static bool inline isSquareIndexValid(int squareIndex)
     {
         return (0 <= squareIndex && squareIndex < 64);
     }
 
-    //*checks if given index is in [0,63] or not
     static void inline checkSquareIndexValidity(int squareIndex)
     {
         if (!BitBoard::isSquareIndexValid(squareIndex))
             throw runtime_error("Square index out of bound inside getBitAt()");
     }
 
-    //*returns the decimal value of the bitboard
     U64 inline getDecimalValue() const
     {
         return this->value;
     }
 
-    //*returns the bit(0 or 1) at the given index
     int inline getBitAt(int squareIndex) const
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
+
         return ((this->value & (1ULL << squareIndex)) == 0) ? 0 : 1;
     }
 
-    //*sets the bit at the given index
     void inline setBitAt(int squareIndex)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
@@ -359,15 +137,14 @@ public:
         this->value = (this->value | (1ULL << squareIndex));
     }
 
-    //*toggles the bit at given index
     void inline toggleBitAt(int squareIndex)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
+
         this->value = (this->value ^ (1ULL << squareIndex));
     }
 
-    //*unsets the bit at given index
     void inline unsetBitAt(int squareIndex)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
@@ -377,8 +154,6 @@ public:
             toggleBitAt(squareIndex);
     }
 
-    //*returns the number of set bits of the bitboard
-    //*Brian Kernighan’s Algorithm
     inline int countSetBits() const
     {
         U64 x = this->value;
@@ -389,10 +164,11 @@ public:
             x &= x - 1;
         }
         return count;
+
+        // dont use function outside the class
+        //  return countSetBitsOfU64(this->value);
     }
 
-    //*returns the least significant bit index( in [0,63] if there is set bit) from right
-    //*if there is no set bit in bitboard, then it returns -1
     inline int getFirstLeastSignificantBitIndexFromRight() const
     {
         U64 x = this->value;
@@ -400,15 +176,17 @@ public:
             return -1;
 
         BitBoard temp = ((x & -x) - 1);
+
         return temp.countSetBits();
+
+        // return getFirstLeastSignificantBitIndexFromRightU64(this->value);
     }
 
-    //*prints the bitboard, without the extra fancy boxes
     void inline printWithoutBoxes() const
     {
         for (int i = 0; i < 8; i++)
         {
-            //* print rank number
+            // print rank number
             int rank = 8 - i;
             cout << rank << "    ";
 
@@ -421,26 +199,25 @@ public:
             cout << endl;
         }
 
-        //* print files
+        // print files
         cout << "\n     a  b  c  d  e  f  g  h";
 
-        //* print decimal value of the bitboard
+        // print decimal value of the bitboard
         cout << "\n\n    Decimal value : " << this->value << endl
              << endl;
     }
 
-    //*prints the bitbaord
     void inline print(bool withZeros = false) const
     {
         // cout << "+---+---+---+---+---+---+---+---+" << endl;
         cout << endl;
         for (int i = 0; i < 8; i++)
         {
-            //* print rank number
+            // print rank number
             int rank = 8 - i;
             // cout << rank << "    ";
 
-            cout << "+---+---+---+---+---+---+---+---+" << "\n";
+            cout << "+---+---+---+---+---+---+---+---+" << endl;
 
             for (int j = 0; j < 8; j++)
             {
@@ -454,78 +231,26 @@ public:
                 cout << " ";
             }
             cout << "|";
-            cout << "   " << rank << "\n";
+            cout << "   " << rank << endl;
         }
 
-        cout << "+---+---+---+---+---+---+---+---+---+---+" << "\n";
+        cout << "+---+---+---+---+---+---+---+---+---+---+" << endl;
+
         cout << "  a   b   c   d   e   f   g   h   --------> File";
 
-        //* print decimal value of the bitboard
-        cout << "\n\n    Decimal value : " << this->value << "\n\n";
+        // print decimal value of the bitboard
+        cout << "\n\n    Decimal value : " << this->value << endl
+             << endl;
     }
 
-
-    /*
-    *    Example: 
-    *        Suppose there is a white pawn on d4.
-    *        Attacked squares are: c5, e5
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   | P |   |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    */
-    //*returns the attack bitbaord of pawn of given color from given square index
     static BitBoard inline getPawnAttacks(int squareIndex, int playerColor)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
+
         return PAWN_ATTACK_TABLE[playerColor][squareIndex];
     }
 
-
-
-    /*
-    *    Example: 
-    *        Suppose there is a knight on d4.
-    *        Attacked squares are: b5, b3, c6, c2, 36, e2, f5, f3
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   | N |   |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   | 1 |   |   |   | 1 |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 |   | 1 |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    */
-    //*returns the attack bitbaord of knight of given color from given square index
     static BitBoard inline getKnightAttacks(int squareIndex)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
@@ -534,36 +259,11 @@ public:
         return KNIGHT_ATTACK_TABLE[squareIndex];
     }
 
-    /*
-    *    Example: 
-    *        Suppose there is a king on d4.
-    *        Attacked squares are: c5, c4, c3, d5, d3, e5, e5, e3
-    *        We set those indices in the attack bitbaord to 1, and rest of the indices to 0
-    *
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   8
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   7
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   6
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | 1 | 1 |   |   |   |   5
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | K | 1 |   |   |   |   4
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   | 1 | 1 | 1 |   |   |   |   3
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   2
-    *        +---+---+---+---+---+---+---+---+
-    *        |   |   |   |   |   |   |   |   |   1
-    *        +---+---+---+---+---+---+---+---+---+---+
-    *          a   b   c   d   e   f   g   h   --------> File
-    */
-    //*returns the attack bitbaord of king of given color from given square index
     static BitBoard inline getKingAttacks(int squareIndex)
     {
         // BitBoard::checkSquareIndexValidity(squareIndex);
         assert(0 <= squareIndex && squareIndex < 64);
+
         return KING_ATTACK_TABLE[squareIndex];
     }
 
@@ -659,54 +359,53 @@ private:
     //*------------------------ so that recursively the initializeAllLookUpTables() function is not again called
 
     /*
-    *    generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
-    *
-    *    example :
-    *blocker bitboard :
-    *+---+---+---+---+---+---+---+---+
-    *| 1 |   |   |   |   |   |   |   |   8
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   | 1 |   |   7
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   6
-    *+---+---+---+---+---+---+---+---+
-    *|   |   | 1 |   |   |   |   |   |   5
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   4
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   3
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   2
-    *+---+---+---+---+---+---+---+---+
-    *| 1 |   |   |   |   |   |   | 1 |   1
-    *+---+---+---+---+---+---+---+---+---+---+
-    *  a   b   c   d   e   f   g   h   --------> File
-    *
-    *    Decimal value : 9295429630959828993
-    *
-    *bishop attacks :
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   8
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   | 1 |   |   7
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   | 1 |   |   |   6
-    *+---+---+---+---+---+---+---+---+
-    *|   |   | 1 |   | 1 |   |   |   |   5
-    *+---+---+---+---+---+---+---+---+
-    *|   |   |   |   |   |   |   |   |   4
-    *+---+---+---+---+---+---+---+---+
-    *|   |   | 1 |   | 1 |   |   |   |   3
-    *+---+---+---+---+---+---+---+---+
-    *|   | 1 |   |   |   | 1 |   |   |   2
-    *+---+---+---+---+---+---+---+---+
-    *| 1 |   |   |   |   |   | 1 |   |   1
-    *+---+---+---+---+---+---+---+---+---+---+
-    *  a   b   c   d   e   f   g   h   --------> File
-    *
-    *    Decimal value : 4693335752243691520
-    */
+        generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
 
+        example :
+    blocker bitboard :
+    +---+---+---+---+---+---+---+---+
+    | 1 |   |   |   |   |   |   |   |   8
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   | 1 |   |   7
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   6
+    +---+---+---+---+---+---+---+---+
+    |   |   | 1 |   |   |   |   |   |   5
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   4
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   3
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   2
+    +---+---+---+---+---+---+---+---+
+    | 1 |   |   |   |   |   |   | 1 |   1
+    +---+---+---+---+---+---+---+---+---+---+
+      a   b   c   d   e   f   g   h   --------> File
+
+        Decimal value : 9295429630959828993
+
+    bishop attacks :
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   8
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   | 1 |   |   7
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   | 1 |   |   |   6
+    +---+---+---+---+---+---+---+---+
+    |   |   | 1 |   | 1 |   |   |   |   5
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   4
+    +---+---+---+---+---+---+---+---+
+    |   |   | 1 |   | 1 |   |   |   |   3
+    +---+---+---+---+---+---+---+---+
+    |   | 1 |   |   |   | 1 |   |   |   2
+    +---+---+---+---+---+---+---+---+
+    | 1 |   |   |   |   |   | 1 |   |   1
+    +---+---+---+---+---+---+---+---+---+---+
+      a   b   c   d   e   f   g   h   --------> File
+
+        Decimal value : 4693335752243691520
+    */
     //*including the edge of the board and occupancy of blocker pieces
     static BitBoard generateBishopAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
     {
@@ -714,8 +413,11 @@ private:
         assert(0 <= squareIndex && squareIndex < 64);
 
         BitBoard result(0ULL, false);
+        // BitBoard::checkSquareIndexValidity(squareIndex);
+        assert(0 <= squareIndex && squareIndex < 64);
 
         int targetIndex = -1;
+
         int currentRank = BitBoard::getRankOfSquareIndex(squareIndex);
         char currentFile = BitBoard::getFileOfSquareIndex(squareIndex);
 
@@ -766,58 +468,57 @@ private:
     }
 
     /*
-    *        generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
-    *
-    *        example :
-    *
-    *
-    *    blocker bitboard :
-    *    +---+---+---+---+---+---+---+---+
-    *    | 1 |   |   |   |   |   |   |   |   8
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   7
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   6
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   | 1 |   |   |   |   |   5
-    *    +---+---+---+---+---+---+---+---+
-    *    |   | 1 |   |   |   |   | 1 |   |   4
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   3
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   | 1 |   |   |   |   |   2
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   1
-    *    +---+---+---+---+---+---+---+---+---+---+
-    *      a   b   c   d   e   f   g   h   --------> File
-    *
-    *        Decimal value : 2252083415744513
-    *
-    *
-    *    Rook attacks :
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   8
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   7
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   6
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   | 1 |   |   |   |   |   5
-    *    +---+---+---+---+---+---+---+---+
-    *    |   | 1 | 1 |   | 1 | 1 | 1 |   |   4
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   | 1 |   |   |   |   |   3
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   | 1 |   |   |   |   |   2
-    *    +---+---+---+---+---+---+---+---+
-    *    |   |   |   |   |   |   |   |   |   1
-    *    +---+---+---+---+---+---+---+---+---+---+
-    *      a   b   c   d   e   f   g   h   --------> File
-    *
-    *        Decimal value : 2261102847066112
+        generates attacks upto the blocker piece. i.e, drops the squares in the attack ray after hitting the blocker piece
+
+        example :
+
+
+    blocker bitboard :
+    +---+---+---+---+---+---+---+---+
+    | 1 |   |   |   |   |   |   |   |   8
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   7
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   6
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | 1 |   |   |   |   |   5
+    +---+---+---+---+---+---+---+---+
+    |   | 1 |   |   |   |   | 1 |   |   4
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   3
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | 1 |   |   |   |   |   2
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   1
+    +---+---+---+---+---+---+---+---+---+---+
+      a   b   c   d   e   f   g   h   --------> File
+
+        Decimal value : 2252083415744513
+
+
+    Rook attacks :
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   8
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   7
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   6
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | 1 |   |   |   |   |   5
+    +---+---+---+---+---+---+---+---+
+    |   | 1 | 1 |   | 1 | 1 | 1 |   |   4
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | 1 |   |   |   |   |   3
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | 1 |   |   |   |   |   2
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   |   |   1
+    +---+---+---+---+---+---+---+---+---+---+
+      a   b   c   d   e   f   g   h   --------> File
+
+        Decimal value : 2261102847066112
     */
 
-    //*generates rook attack on the fly
     //*Exludes the edge of the board
     static BitBoard generateRookAttacksOnTheFly(int squareIndex, const BitBoard &blockers)
     {
@@ -825,6 +526,8 @@ private:
         assert(0 <= squareIndex && squareIndex < 64);
 
         BitBoard result(0ULL, false);
+        // BitBoard::checkSquareIndexValidity(squareIndex);
+        assert(0 <= squareIndex && squareIndex < 64);
 
         int targetIndex = -1;
 
@@ -880,87 +583,83 @@ private:
     }
 
     /*
-     TODO:  gotta research later
+     TODO: Dunno much about this function for now :) , gotta research later
      */
     static BitBoard setOccupancy(int index, BitBoard attackMask)
     {
-        //* occupancy mask
+        // occupancy mask
         BitBoard occupancy(0ULL, false);
 
         int numberOfSetBits = attackMask.countSetBits();
 
-        //* loop over the range of set bits of attack masks
+        // loop over the range of set bits of attack masks
         for (int count = 0; count < numberOfSetBits; count++)
         {
-            //* get the index of the Least significant set bit within our attack mask
+            // get the index of the Least significant set bit within our attack mask
             int squareIndex = attackMask.getFirstLeastSignificantBitIndexFromRight();
 
-            //* pop the Least significant set bit
+            // pop the Least significant set bit
             attackMask.unsetBitAt(squareIndex);
 
-            //* make sure occupancy is on board
+            // make sure occupancy is on board
             if (index & (1 << count)) // TODO: Dunno
-                //* populate occupancy mask
+                // populate occupancy mask
                 occupancy.setBitAt(squareIndex);
         }
 
         return occupancy;
     }
 
-
-    //*initializes the attack tables for slider pieces
     static void inline initializeSliderPieceAttackTables()
     {
         //*make it true so that the attack tables are not initialized for every object creation of BitBoard class
         BitBoard::lookupTablesInitialized = true;
 
         //*assign values to the attack tables
+
         for (int squareIndex = 0; squareIndex < 64; squareIndex++)
         {
             //*for bishop_____________________________________________________________________________
             int relevantBitCount = BitBoard::BISHOP_ATTACK_MASK_SET_BIT_COUNT[squareIndex];
-            
-            //* initialize occupancyIndex
+            // initialize occupancyIndex
             int occupancyIndex = (1 << relevantBitCount);
 
             for (int index = 0; index < occupancyIndex; index++)
             {
-                //* initilalize current occupancy variation
+                // initilalize current occupancy variation
                 BitBoard occupancy = BitBoard::setOccupancy(index, BitBoard::BISHOP_ATTACK_MASK[squareIndex]);
 
-                //* initialize magic index
+                // initialize magic index
                 U64 magicIndex = (occupancy.getDecimalValue() * BitBoard::BISHOP_MAGIC_NUMBER[squareIndex]) >> (64 - relevantBitCount);
 
-                //* initialize bishop attacks
+                // initialize bishop attacks
                 BitBoard::BISHOP_ATTACK_TABLE[squareIndex][magicIndex] = BitBoard::generateBishopAttacksOnTheFly(squareIndex, occupancy);
             }
 
             //*for rook_____________________________________________________________________________
             relevantBitCount = BitBoard::ROOK_ATTACK_MASK_SET_BIT_COUNT[squareIndex];
-            //* initialize occupancyIndex
+            // initialize occupancyIndex
             occupancyIndex = (1 << relevantBitCount);
 
             for (int index = 0; index < occupancyIndex; index++)
             {
-                //* initilalize current occupancy variation
+                // initilalize current occupancy variation
                 //*copy constructor will not call initializeAllLookupTables()
                 BitBoard occupancy(BitBoard::setOccupancy(index, BitBoard::ROOK_ATTACK_MASK[squareIndex]));
 
-                //* initialize magic index
+                // initialize magic index
                 U64 magicIndex = (occupancy.getDecimalValue() * BitBoard::ROOK_MAGIC_NUMBER[squareIndex]) >> (64 - relevantBitCount);
 
-                //* initialize bishop attacks
+                // initialize bishop attacks
                 BitBoard::ROOK_ATTACK_TABLE[squareIndex][magicIndex] = BitBoard::generateRookAttacksOnTheFly(squareIndex, occupancy);
             }
         }
     }
 
-public:
-    //*initializes all lookup tables
     static void initializeAllLookupTables()
     {
         //*TODO: uncomment the printer line after testing :)
-        // cout << "\ninitializeAllLookupTables() called\n";
+        cout << "\ninitializeAllLookupTables() called\n";
 
         // BitBoard::initializePrecomputedLookupTables();
         BitBoard::initializeSliderPieceAttackTables();
@@ -1015,28 +714,28 @@ BitBoard BitBoard::BISHOP_ATTACK_MASK[64] =
 
 //*Exludes the edge of the board
 /*
-*   example :
-*   
-*   for squareINdex = d4
-*   
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   |   |   |   |   |   |   8
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   | 1 |   |   |   |   |   7
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   | 1 |   |   |   |   |   6
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   | 1 |   |   |   |   |   5
-*   +---+---+---+---+---+---+---+---+
-*   |   | 1 | 1 |   | 1 | 1 | 1 |   |   4
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   | 1 |   |   |   |   |   3
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   | 1 |   |   |   |   |   2
-*   +---+---+---+---+---+---+---+---+
-*   |   |   |   |   |   |   |   |   |   1
-*   +---+---+---+---+---+---+---+---+---+---+
-*     a   b   c   d   e   f   g   h   --------> File
+example :
+
+for squareINdex = d4
+
++---+---+---+---+---+---+---+---+
+|   |   |   |   |   |   |   |   |   8
++---+---+---+---+---+---+---+---+
+|   |   |   | 1 |   |   |   |   |   7
++---+---+---+---+---+---+---+---+
+|   |   |   | 1 |   |   |   |   |   6
++---+---+---+---+---+---+---+---+
+|   |   |   | 1 |   |   |   |   |   5
++---+---+---+---+---+---+---+---+
+|   | 1 | 1 |   | 1 | 1 | 1 |   |   4
++---+---+---+---+---+---+---+---+
+|   |   |   | 1 |   |   |   |   |   3
++---+---+---+---+---+---+---+---+
+|   |   |   | 1 |   |   |   |   |   2
++---+---+---+---+---+---+---+---+
+|   |   |   |   |   |   |   |   |   1
++---+---+---+---+---+---+---+---+---+---+
+  a   b   c   d   e   f   g   h   --------> File
 */
 // *size = 64
 BitBoard BitBoard::ROOK_ATTACK_MASK[64] =
@@ -1066,18 +765,18 @@ U64 BitBoard::ROOK_MAGIC_NUMBER[64] = {
 //*_____________________________ATTACK TABLES____________________________________________________________________
 
 //*PAWN ATTACK TABLE______________________________________
-//* pawnAttacks[playerColor][squareIndex]  , size = 2 * 64 (white or black * 64 squares)
+// pawnAttacks[playerColor][squareIndex]  , size = 2 * 64 (white or black * 64 squares)
 BitBoard BitBoard::PAWN_ATTACK_TABLE[2][64] =
     {{BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(2ULL, false), BitBoard(5ULL, false), BitBoard(10ULL, false), BitBoard(20ULL, false), BitBoard(40ULL, false), BitBoard(80ULL, false), BitBoard(160ULL, false), BitBoard(64ULL, false), BitBoard(512ULL, false), BitBoard(1280ULL, false),
       BitBoard(2560ULL, false), BitBoard(5120ULL, false), BitBoard(10240ULL, false), BitBoard(20480ULL, false), BitBoard(40960ULL, false), BitBoard(16384ULL, false), BitBoard(131072ULL, false), BitBoard(327680ULL, false), BitBoard(655360ULL, false), BitBoard(1310720ULL, false), BitBoard(2621440ULL, false), BitBoard(5242880ULL, false), BitBoard(10485760ULL, false), BitBoard(4194304ULL, false), BitBoard(33554432ULL, false), BitBoard(83886080ULL, false), BitBoard(167772160ULL, false), BitBoard(335544320ULL, false), BitBoard(671088640ULL, false), BitBoard(1342177280ULL, false), BitBoard(2684354560ULL, false), BitBoard(1073741824ULL, false), BitBoard(8589934592ULL, false), BitBoard(21474836480ULL, false), BitBoard(42949672960ULL, false), BitBoard(85899345920ULL, false), BitBoard(171798691840ULL, false), BitBoard(343597383680ULL, false), BitBoard(687194767360ULL, false), BitBoard(274877906944ULL, false), BitBoard(2199023255552ULL, false), BitBoard(5497558138880ULL, false), BitBoard(10995116277760ULL, false), BitBoard(21990232555520ULL, false), BitBoard(43980465111040ULL, false), BitBoard(87960930222080ULL, false), BitBoard(175921860444160ULL, false), BitBoard(70368744177664ULL, false), BitBoard(562949953421312ULL, false), BitBoard(1407374883553280ULL, false), BitBoard(2814749767106560ULL, false), BitBoard(5629499534213120ULL, false), BitBoard(11258999068426240ULL, false), BitBoard(22517998136852480ULL, false), BitBoard(45035996273704960ULL, false), BitBoard(18014398509481984ULL, false)},
      {BitBoard(512ULL, false), BitBoard(1280ULL, false), BitBoard(2560ULL, false), BitBoard(5120ULL, false), BitBoard(10240ULL, false), BitBoard(20480ULL, false), BitBoard(40960ULL, false), BitBoard(16384ULL, false), BitBoard(131072ULL, false), BitBoard(327680ULL, false), BitBoard(655360ULL, false), BitBoard(1310720ULL, false), BitBoard(2621440ULL, false), BitBoard(5242880ULL, false), BitBoard(10485760ULL, false), BitBoard(4194304ULL, false), BitBoard(33554432ULL, false), BitBoard(83886080ULL, false), BitBoard(167772160ULL, false), BitBoard(335544320ULL, false), BitBoard(671088640ULL, false), BitBoard(1342177280ULL, false), BitBoard(2684354560ULL, false), BitBoard(1073741824ULL, false), BitBoard(8589934592ULL, false), BitBoard(21474836480ULL, false), BitBoard(42949672960ULL, false), BitBoard(85899345920ULL, false), BitBoard(171798691840ULL, false), BitBoard(343597383680ULL, false), BitBoard(687194767360ULL, false), BitBoard(274877906944ULL, false), BitBoard(2199023255552ULL, false), BitBoard(5497558138880ULL, false), BitBoard(10995116277760ULL, false), BitBoard(21990232555520ULL, false), BitBoard(43980465111040ULL, false), BitBoard(87960930222080ULL, false), BitBoard(175921860444160ULL, false), BitBoard(70368744177664ULL, false), BitBoard(562949953421312ULL, false), BitBoard(1407374883553280ULL, false), BitBoard(2814749767106560ULL, false), BitBoard(5629499534213120ULL, false), BitBoard(11258999068426240ULL, false), BitBoard(22517998136852480ULL, false), BitBoard(45035996273704960ULL, false), BitBoard(18014398509481984ULL, false), BitBoard(144115188075855872ULL, false), BitBoard(360287970189639680ULL, false), BitBoard(720575940379279360ULL, false), BitBoard(1441151880758558720ULL, false), BitBoard(2882303761517117440ULL, false), BitBoard(5764607523034234880ULL, false), BitBoard(11529215046068469760ULL, false), BitBoard(4611686018427387904ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false), BitBoard(0ULL, false)}};
 
 //*KNIGHT ATTACK TABLE______________________________________
-//* knightAttacks[squareIndex] , size = 64
+// knightAttacks[squareIndex] , size = 64
 BitBoard BitBoard::KNIGHT_ATTACK_TABLE[64] =
     {BitBoard(132096ULL, false), BitBoard(329728ULL, false), BitBoard(659712ULL, false), BitBoard(1319424ULL, false), BitBoard(2638848ULL, false), BitBoard(5277696ULL, false), BitBoard(10489856ULL, false), BitBoard(4202496ULL, false), BitBoard(33816580ULL, false), BitBoard(84410376ULL, false), BitBoard(168886289ULL, false), BitBoard(337772578ULL, false), BitBoard(675545156ULL, false), BitBoard(1351090312ULL, false), BitBoard(2685403152ULL, false), BitBoard(1075839008ULL, false), BitBoard(8657044482ULL, false), BitBoard(21609056261ULL, false), BitBoard(43234889994ULL, false), BitBoard(86469779988ULL, false), BitBoard(172939559976ULL, false), BitBoard(345879119952ULL, false), BitBoard(687463207072ULL, false), BitBoard(275414786112ULL, false), BitBoard(2216203387392ULL, false), BitBoard(5531918402816ULL, false), BitBoard(11068131838464ULL, false), BitBoard(22136263676928ULL, false), BitBoard(44272527353856ULL, false), BitBoard(88545054707712ULL, false), BitBoard(175990581010432ULL, false), BitBoard(70506185244672ULL, false), BitBoard(567348067172352ULL, false), BitBoard(1416171111120896ULL, false), BitBoard(2833441750646784ULL, false), BitBoard(5666883501293568ULL, false), BitBoard(11333767002587136ULL, false), BitBoard(22667534005174272ULL, false), BitBoard(45053588738670592ULL, false), BitBoard(18049583422636032ULL, false), BitBoard(145241105196122112ULL, false), BitBoard(362539804446949376ULL, false), BitBoard(725361088165576704ULL, false), BitBoard(1450722176331153408ULL, false), BitBoard(2901444352662306816ULL, false), BitBoard(5802888705324613632ULL, false), BitBoard(11533718717099671552ULL, false), BitBoard(4620693356194824192ULL, false), BitBoard(288234782788157440ULL, false), BitBoard(576469569871282176ULL, false), BitBoard(1224997833292120064ULL, false), BitBoard(2449995666584240128ULL, false), BitBoard(4899991333168480256ULL, false), BitBoard(9799982666336960512ULL, false), BitBoard(1152939783987658752ULL, false), BitBoard(2305878468463689728ULL, false), BitBoard(1128098930098176ULL, false), BitBoard(2257297371824128ULL, false), BitBoard(4796069720358912ULL, false), BitBoard(9592139440717824ULL, false), BitBoard(19184278881435648ULL, false), BitBoard(38368557762871296ULL, false), BitBoard(4679521487814656ULL, false), BitBoard(9077567998918656ULL, false)};
 
-//* kingAttacks[squareIndex] , size = 64
+// kingAttacks[squareIndex] , size = 64
 BitBoard BitBoard::KING_ATTACK_TABLE[64] = {BitBoard(770ULL, false), BitBoard(1797ULL, false), BitBoard(3594ULL, false), BitBoard(7188ULL, false), BitBoard(14376ULL, false), BitBoard(28752ULL, false), BitBoard(57504ULL, false), BitBoard(49216ULL, false), BitBoard(197123ULL, false), BitBoard(460039ULL, false), BitBoard(920078ULL, false), BitBoard(1840156ULL, false), BitBoard(3680312ULL, false), BitBoard(7360624ULL, false), BitBoard(14721248ULL, false), BitBoard(12599488ULL, false), BitBoard(50463488ULL, false), BitBoard(117769984ULL, false), BitBoard(235539968ULL, false), BitBoard(471079936ULL, false), BitBoard(942159872ULL, false), BitBoard(1884319744ULL, false), BitBoard(3768639488ULL, false), BitBoard(3225468928ULL, false), BitBoard(12918652928ULL, false), BitBoard(30149115904ULL, false), BitBoard(60298231808ULL, false), BitBoard(120596463616ULL, false), BitBoard(241192927232ULL, false), BitBoard(482385854464ULL, false), BitBoard(964771708928ULL, false), BitBoard(825720045568ULL, false), BitBoard(3307175149568ULL, false), BitBoard(7718173671424ULL, false), BitBoard(15436347342848ULL, false), BitBoard(30872694685696ULL, false), BitBoard(61745389371392ULL, false), BitBoard(123490778742784ULL, false), BitBoard(246981557485568ULL, false), BitBoard(211384331665408ULL, false), BitBoard(846636838289408ULL, false), BitBoard(1975852459884544ULL, false), BitBoard(3951704919769088ULL, false), BitBoard(7903409839538176ULL, false), BitBoard(15806819679076352ULL, false), BitBoard(31613639358152704ULL, false), BitBoard(63227278716305408ULL, false), BitBoard(54114388906344448ULL, false), BitBoard(216739030602088448ULL, false), BitBoard(505818229730443264ULL, false), BitBoard(1011636459460886528ULL, false), BitBoard(2023272918921773056ULL, false), BitBoard(4046545837843546112ULL, false), BitBoard(8093091675687092224ULL, false), BitBoard(16186183351374184448ULL, false), BitBoard(13853283560024178688ULL, false), BitBoard(144959613005987840ULL, false), BitBoard(362258295026614272ULL, false), BitBoard(724516590053228544ULL, false), BitBoard(1449033180106457088ULL, false), BitBoard(2898066360212914176ULL, false), BitBoard(5796132720425828352ULL, false), BitBoard(11592265440851656704ULL, false), BitBoard(4665729213955833856ULL, false)};
 
 //
@@ -1096,10 +795,10 @@ BitBoard BitBoard::KING_ATTACK_TABLE[64] = {BitBoard(770ULL, false), BitBoard(17
 //
 //
 // //* BISHOP_ATTACK_TABLE[squareIndex][occupancyBitBoard], size = 64 * 512 (---------------------------need to be initialized---------------------------)
-//* BitBoard BISHOP_ATTACK_TABLE[64][512];
+// BitBoard BISHOP_ATTACK_TABLE[64][512];
 
 // //* ROOK_ATTACK_TABLE[squareIndex][occupancyBitBoard] , size = 64 * 4096 (---------------------------need to be initialized---------------------------)
-//* BitBoard ROOK_ATTACK_TABLE[64][4096];
+// BitBoard ROOK_ATTACK_TABLE[64][4096];
 
 //*initialize the vectors with given size
 vector<vector<BitBoard>> emptyBishopVector(64, vector<BitBoard>(512, BitBoard(0ULL, false)));

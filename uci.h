@@ -6,6 +6,11 @@ using namespace std;
 
 #include "engine.h"
 
+#define START_POSITION_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+#define PRUNING_TEST_POSITION "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+#define TRICKY_POSITION_FEN "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+#define KILLER_MOVE_TEST_POSITION "6k1/3q1pp1/pp5p/1r5n/8/1P3PP1/PQ4BP/2R3K1 w - - 0 1"
+#define KILLER_MOVE_TEST_POSITION1 "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
 
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
 //*----------------------------------------------------------GLOBAL VARIABLE--------------------------------------------------------------------------*//
@@ -157,7 +162,7 @@ private:
             }
         }
 
-        this->engine.printBoard();
+        this->engine.print();
     }
 
     /*
@@ -199,32 +204,32 @@ private:
         // match UCI "binc" command
         if ((argument = strstr(command, "binc")) && engine.getCurrentPlayer() == BLACK)
             // parse black time increment
-            engine.uciSearchInfo.inc = atoi(argument + 5);
+            Engine::uciSearchInfo.inc = atoi(argument + 5);
 
         // match UCI "winc" command
         if ((argument = strstr(command, "winc")) && engine.getCurrentPlayer() == WHITE)
             // parse white time increment
-            engine.uciSearchInfo.inc = atoi(argument + 5);
+            Engine::uciSearchInfo.inc = atoi(argument + 5);
 
         // match UCI "wtime" command
         if ((argument = strstr(command, "wtime")) && engine.getCurrentPlayer() == WHITE)
             // parse white time limit
-            engine.uciSearchInfo.time = atoi(argument + 6);
+            Engine::uciSearchInfo.time = atoi(argument + 6);
 
         // match UCI "btime" command
         if ((argument = strstr(command, "btime")) && engine.getCurrentPlayer() == BLACK)
             // parse black time limit
-            engine.uciSearchInfo.time = atoi(argument + 6);
+            Engine::uciSearchInfo.time = atoi(argument + 6);
 
         // match UCI "movestogo" command
         if ((argument = strstr(command, "movestogo")))
             // parse number of moves to go
-            engine.uciSearchInfo.movestogo = atoi(argument + 10);
+            Engine::uciSearchInfo.movestogo = atoi(argument + 10);
 
         // match UCI "movetime" command
         if ((argument = strstr(command, "movetime")))
             // parse amount of time allowed to spend to make a move
-            engine.uciSearchInfo.movetime = atoi(argument + 9);
+            Engine::uciSearchInfo.movetime = atoi(argument + 9);
 
         // match UCI "depth" command
         if ((argument = strstr(command, "depth")))
@@ -232,31 +237,31 @@ private:
             depth = atoi(argument + 6);
 
         // if move time is not available
-        if (engine.uciSearchInfo.movetime != -1)
+        if (Engine::uciSearchInfo.movetime != -1)
         {
             // set time equal to move time
-            engine.uciSearchInfo.time = engine.uciSearchInfo.movetime;
+            Engine::uciSearchInfo.time = Engine::uciSearchInfo.movetime;
 
             // set moves to go to 1
-            engine.uciSearchInfo.movestogo = 1;
+            Engine::uciSearchInfo.movestogo = 1;
         }
 
         // init start time
-        engine.uciSearchInfo.starttime = getTimeInMilliSeconds();
+        Engine::uciSearchInfo.starttime = getTimeInMilliSeconds();
 
         // init search depth
         depth = depth;
 
         // if time control is available
-        if (engine.uciSearchInfo.time != -1)
+        if (Engine::uciSearchInfo.time != -1)
         {
             // flag we're playing with time control
-            engine.uciSearchInfo.timeset = 1;
+            Engine::uciSearchInfo.timeset = 1;
 
             // set up timing
-            engine.uciSearchInfo.time /= engine.uciSearchInfo.movestogo;
-            engine.uciSearchInfo.time -= 50;
-            engine.uciSearchInfo.stoptime = engine.uciSearchInfo.starttime + engine.uciSearchInfo.time + engine.uciSearchInfo.inc;
+            Engine::uciSearchInfo.time /= Engine::uciSearchInfo.movestogo;
+            Engine::uciSearchInfo.time -= 50;
+            Engine::uciSearchInfo.stoptime = Engine::uciSearchInfo.starttime + Engine::uciSearchInfo.time + Engine::uciSearchInfo.inc;
         }
 
         // if depth is not available
@@ -265,8 +270,8 @@ private:
             depth = 64;
 
         // print debug info
-        // printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-        //        time, Engine::uciSearchInfo.starttime, Engine::uciSearchInfo.stoptime, depth, Engine::uciSearchInfo.timeset);
+        printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+               time, Engine::uciSearchInfo.starttime, Engine::uciSearchInfo.stoptime, depth, Engine::uciSearchInfo.timeset);
 
         // *search position for best move
         this->engine.searchPositionIterativeDeepening(depth);
@@ -292,7 +297,9 @@ public:
 
         // print this->engine info
         cout << "id name BlueBetaFish\n";
-        
+        cout << "id name Sourashis Mondal\n";
+        cout << "uciok\n";
+
         // main loop
         while (1)
         {
@@ -344,6 +351,7 @@ public:
             {
                 // print this->engine info
                 cout << "id name BlueBetaFish\n";
+                cout << "id name Sourashis Mondal\n";
                 cout << "uciok\n";
             }
         }
