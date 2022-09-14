@@ -541,6 +541,12 @@ public:
             //*check if time is up or there is any interrupt from the GUI
             communicateWithGUI();
         }
+        
+        //*if time is up
+        if(stopped)
+            return {0};
+
+            
 
         //*increment searched nodes counter
         nodeCount++;
@@ -623,6 +629,11 @@ public:
             //*check if time is up or there is any interrupt from the GUI
             communicateWithGUI();
         }
+
+        //*if time is up
+        if(stopped)
+            return {0};
+
 
         if (depthLimit <= 0)
         {

@@ -192,7 +192,9 @@ private:
     // parse UCI command "go"
     void parseGo(char *command)
     {
+        
 
+        //*Important
         engine.resetUCISearchInfo();
 
 
@@ -242,7 +244,7 @@ private:
             // parse search depth
             depth = atoi(argument + 6);
 
-        // if move time is not available
+        // if move time is available
         if (engine.movetime != -1)
         {
             // set time equal to move time
@@ -252,11 +254,6 @@ private:
             engine.movestogo = 1;
         }
 
-        // init start time
-        engine.starttime = getTimeInMilliSeconds();
-
-        // init search depth
-        depth = depth;
 
         // if time control is available
         if (engine.time != -1)
@@ -265,6 +262,7 @@ private:
             engine.timeset = 1;
 
             // set up timing
+            engine.starttime = getTimeInMilliSeconds();
             engine.time /= engine.movestogo;
             engine.time -= 50;
             engine.stoptime = engine.starttime + engine.time + engine.inc;
@@ -311,7 +309,6 @@ public:
 
         // print this->engine info
         cout << "id name BlueBetaFish\n";
-        cout << "id name Sourashis Mondal\n";
         cout << "uciok\n";
 
         // main loop
@@ -365,7 +362,6 @@ public:
             {
                 // print this->engine info
                 cout << "id name BlueBetaFish\n";
-                cout << "id name Sourashis Mondal\n";
                 cout << "uciok\n";
             }
         }
