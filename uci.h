@@ -82,8 +82,10 @@ private:
                 return move;
         }
 
+
         // *illegal move
         // throw runtime_error("\nillegal move inside parseMove() function\n\n");
+        cout<<"\n\n-------------Illegal move inside parseMove() function--------------\n\n";
         return Move::INVALID_MOVE;
     }
 
@@ -190,6 +192,10 @@ private:
     // parse UCI command "go"
     void parseGo(char *command)
     {
+
+        engine.resetUCISearchInfo();
+
+
         // init parameters
         int depth = -1;
 
@@ -204,32 +210,32 @@ private:
         // match UCI "binc" command
         if ((argument = strstr(command, "binc")) && engine.getCurrentPlayer() == BLACK)
             // parse black time increment
-            Engine::uciSearchInfo.inc = atoi(argument + 5);
+            engine.inc = atoi(argument + 5);
 
         // match UCI "winc" command
         if ((argument = strstr(command, "winc")) && engine.getCurrentPlayer() == WHITE)
             // parse white time increment
-            Engine::uciSearchInfo.inc = atoi(argument + 5);
+            engine.inc = atoi(argument + 5);
 
         // match UCI "wtime" command
         if ((argument = strstr(command, "wtime")) && engine.getCurrentPlayer() == WHITE)
             // parse white time limit
-            Engine::uciSearchInfo.time = atoi(argument + 6);
+            engine.time = atoi(argument + 6);
 
         // match UCI "btime" command
         if ((argument = strstr(command, "btime")) && engine.getCurrentPlayer() == BLACK)
             // parse black time limit
-            Engine::uciSearchInfo.time = atoi(argument + 6);
+            engine.time = atoi(argument + 6);
 
         // match UCI "movestogo" command
         if ((argument = strstr(command, "movestogo")))
             // parse number of moves to go
-            Engine::uciSearchInfo.movestogo = atoi(argument + 10);
+            engine.movestogo = atoi(argument + 10);
 
         // match UCI "movetime" command
         if ((argument = strstr(command, "movetime")))
             // parse amount of time allowed to spend to make a move
-            Engine::uciSearchInfo.movetime = atoi(argument + 9);
+            engine.movetime = atoi(argument + 9);
 
         // match UCI "depth" command
         if ((argument = strstr(command, "depth")))
@@ -237,31 +243,31 @@ private:
             depth = atoi(argument + 6);
 
         // if move time is not available
-        if (Engine::uciSearchInfo.movetime != -1)
+        if (engine.movetime != -1)
         {
             // set time equal to move time
-            Engine::uciSearchInfo.time = Engine::uciSearchInfo.movetime;
+            engine.time = engine.movetime;
 
             // set moves to go to 1
-            Engine::uciSearchInfo.movestogo = 1;
+            engine.movestogo = 1;
         }
 
         // init start time
-        Engine::uciSearchInfo.starttime = getTimeInMilliSeconds();
+        engine.starttime = getTimeInMilliSeconds();
 
         // init search depth
         depth = depth;
 
         // if time control is available
-        if (Engine::uciSearchInfo.time != -1)
+        if (engine.time != -1)
         {
             // flag we're playing with time control
-            Engine::uciSearchInfo.timeset = 1;
+            engine.timeset = 1;
 
             // set up timing
-            Engine::uciSearchInfo.time /= Engine::uciSearchInfo.movestogo;
-            Engine::uciSearchInfo.time -= 50;
-            Engine::uciSearchInfo.stoptime = Engine::uciSearchInfo.starttime + Engine::uciSearchInfo.time + Engine::uciSearchInfo.inc;
+            engine.time /= engine.movestogo;
+            engine.time -= 50;
+            engine.stoptime = engine.starttime + engine.time + engine.inc;
         }
 
         // if depth is not available
@@ -271,7 +277,15 @@ private:
 
         // print debug info
         printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-               time, Engine::uciSearchInfo.starttime, Engine::uciSearchInfo.stoptime, depth, Engine::uciSearchInfo.timeset);
+               engine.time, engine.starttime, engine.stoptime, depth, engine.timeset);
+
+
+        //*error
+        if(engine.timeset && engine.starttime > engine.stoptime)
+        {
+            cout<<"\n\n----------------------------engine.starttime > engine.stoptime-----------------------\n\n";
+            return;
+        }               
 
         // *search position for best move
         this->engine.searchPositionIterativeDeepening(depth);

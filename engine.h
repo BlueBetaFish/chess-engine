@@ -74,6 +74,11 @@ public:
 public:
     UCISearchInfo()
     {
+        resetUCISearchInfo();
+    }
+
+    void resetUCISearchInfo()
+    {
         quit = false;
         movestogo = 30;
         movetime = -1;
@@ -84,7 +89,6 @@ public:
         timeset = false;
         stopped = false;
     }
-
     
     /*
      *
@@ -207,7 +211,7 @@ public:
     }
 };
 
-class Engine 
+class Engine : public UCISearchInfo
 {
     //*current baord position
     Board boardPosition;
@@ -243,13 +247,7 @@ class Engine
     static MoveList PV_TABLE[MAX_DEPTH];
 
 public:
-    //*=========================================================================================================================================
-    //*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
-    //*=========================================================================================================================================
-    static UCISearchInfo uciSearchInfo;
-
-public:
-    Engine()
+    Engine() 
     {
         nodeCount = 0;
         BEST_MOVE = Move::INVALID_MOVE;
@@ -541,7 +539,7 @@ public:
         if ((nodeCount & 2047) == 0)
         {
             //*check if time is up or there is any interrupt from the GUI
-            Engine::uciSearchInfo.communicateWithGUI();
+            communicateWithGUI();
         }
 
         //*increment searched nodes counter
@@ -588,7 +586,7 @@ public:
             boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
-            if (Engine::uciSearchInfo.stopped)
+            if (stopped)
             {
                 return {0};
             }
@@ -623,7 +621,7 @@ public:
         if ((nodeCount & 2047) == 0)
         {
             //*check if time is up or there is any interrupt from the GUI
-            Engine::uciSearchInfo.communicateWithGUI();
+            communicateWithGUI();
         }
 
         if (depthLimit <= 0)
@@ -676,7 +674,7 @@ public:
             boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
-            if (Engine::uciSearchInfo.stopped)
+            if (stopped)
             {
                 return {0};
             }
@@ -805,7 +803,7 @@ public:
             boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
-            if (Engine::uciSearchInfo.stopped)
+            if (stopped)
             {
                 return {0};
             }
@@ -889,7 +887,7 @@ public:
         BEST_MOVE = Move::INVALID_MOVE;
 
         //*TODO:
-        Engine::uciSearchInfo.stopped = false;
+        stopped = false;
 
         //*reset KILLER_MOVE and HISTORY_MOVE_SCORE tables
         for (int i = 0; i < 2; i++)
@@ -968,7 +966,7 @@ public:
             //*each first start position at each search follow PV line
             MinimaxReturn res = negamax(currDepth, -50000, 50000, 0, true);
 
-            if (Engine::uciSearchInfo.stopped)
+            if (stopped)
             {
                 // cout << "stopped" << endl;
                 break;
@@ -985,7 +983,7 @@ public:
 
                 currDepthNodeCount = nodeCount - currDepthNodeCount;
 
-                cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - Engine::uciSearchInfo.starttime);
+                cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - starttime);
 
                 //*
                 prevDepthSearchBestMove = BEST_MOVE;
@@ -1009,7 +1007,7 @@ public:
          *               print the best move of the last incomplete search which was stopped
          *
          */
-        if (!this->uciSearchInfo.stopped)
+        if (!this->stopped)
             cout << "bestmove " << BEST_MOVE.getUCIMove() << endl;
         else
             cout << "bestmove " << prevDepthSearchBestMove.getUCIMove() << endl;
@@ -1269,7 +1267,3 @@ int Engine::HISTORY_MOVE_SCORE[12][64];
 //* PV_TABLE[0][depth] = best move of the player at depth after completing the search
 MoveList Engine::PV_TABLE[MAX_DEPTH];
 
-//*=========================================================================================================================================
-//*                                     FOR UCI COMMUNICATION FOR TIME MANAGEMENT
-//*=========================================================================================================================================
-UCISearchInfo Engine::uciSearchInfo;

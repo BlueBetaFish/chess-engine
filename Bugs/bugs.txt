@@ -1,0 +1,3 @@
+1. Engine hanging in case of command "go movetime 10000" with position "3rkb1r/pp3ppp/2p5/4P3/1qb4Q/P1N1P3/1PP3PP/R1B1K2R b - - 0 1" after certain depths
+2. for fen "8/1p1r2k1/pQ4n1/4p3/2P1Np1q/8/PP4P1/2R3K1 b - - 0 1" best move is f4f3. Engine gives wrong, and also max search depth upto 9
+3. Best move for position 4r3/6k1/3b1pp1/6p1/q2pP1Q1/1RpP2P1/2P3BP/6K1 b - - 0 1    is a4b3 , but engine is giving wrong result
