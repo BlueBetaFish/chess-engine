@@ -9,6 +9,19 @@
 
 //*----------------------------------------helper functions--------------------------------------------
 
+//*get time in milliseconds
+int inline getTimeInMilliSeconds()
+{
+#ifdef WIN64
+    return GetTickCount();
+#else
+    struct timeval time_value;
+    gettimeofday(&time_value, NULL);
+    return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
+#endif
+}
+
+
 int getOppositeColor(int color)
 {
     if (color == WHITE)
