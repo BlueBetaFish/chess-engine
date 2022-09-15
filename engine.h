@@ -1214,18 +1214,18 @@ public:
 //*-----------------------------------------------------------------------------------------------------------------------------------------------------------------*//
 
 int Engine::materialValue[12] = {
-    100,    // white pawn value(P)
-    300,    // white knight value(N)
-    350,    // white bishop value(B)
-    500,    // white rook value(R)
-    1000,   // white queen value(Q)
-    10000,  // white king value(K)
-    -100,   // black pawn value(p)
-    -300,   // black knight value(n)
-    -350,   // black bishop value(b)
-    -500,   // black rook value(r)
-    -1000,  // black queen value(q)
-    -10000, // black king value(k)
+    100,    //* white pawn value(P)
+    300,    //* white knight value(N)
+    350,    //* white bishop value(B)
+    500,    //* white rook value(R)
+    1000,   //* white queen value(Q)
+    10000,  //* white king value(K)
+    -100,   //* black pawn value(p)
+    -300,   //* black knight value(n)
+    -350,   //* black bishop value(b)
+    -500,   //* black rook value(r)
+    -1000,  //* black queen value(q)
+    -10000, //* black king value(k)
 };
 
 int Engine::positionalScore[12][64] =
