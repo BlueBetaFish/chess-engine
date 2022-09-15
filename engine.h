@@ -24,11 +24,7 @@ using namespace std;
 //*min depth after which moves can be reduced
 #define REDUCTION_DEPTH_LIMIT 3
 
-struct MinimaxReturn
-{
-    int bestScore;
-    // long long nodeCount;
-};
+
 
 
 
@@ -348,7 +344,7 @@ public:
     /*
      *   Returns the max static evaluation score from the initial position until the position is quiet (i.e, there is no more captures)
      */
-    MinimaxReturn inline quiescenceSearch(int alpha, int beta, int ply)
+    int inline quiescenceSearch(int alpha, int beta, int ply)
     {
         /*
          *                            For time control :
@@ -365,7 +361,7 @@ public:
         
         //*if time is up
         if(stopped)
-            return {0};
+            return 0;
 
             
 
@@ -378,7 +374,7 @@ public:
         // this->printBoard();
 
         if (currScore >= beta)
-            return {beta};
+            return beta;
 
         alpha = max(alpha, currScore);
 
@@ -406,17 +402,15 @@ public:
             if (!this->boardPosition.makeMove(move, true))
                 continue;
 
-            MinimaxReturn currReturnedVal = this->quiescenceSearch(-beta, -alpha, ply + 1);
-            int currScore = -currReturnedVal.bestScore;
+            int currScore = -quiescenceSearch(-beta, -alpha, ply + 1);
 
             //*restore board
             boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
             if (stopped)
-            {
-                return {0};
-            }
+                return 0;
+            
 
             //*add new nodeCoutns
             // nodeCount += currReturnedVal.nodeCount;
@@ -428,15 +422,15 @@ public:
 
             //*TODO: codeMonkeyKing is returning beta here dunno why check alter
             if (alpha >= beta)
-                return {beta};
+                return beta;
         }
 
         //*return best score
-        return {alpha};
+        return alpha;
     }
 
     //*isCurrNodeFollowingPVLine is a flag indicating whether the current node(position) is following the PV line or not
-    MinimaxReturn inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
+    int inline negamax(int depthLimit, int alpha, int beta, int ply, bool isCurrNodeFollowingPVLine)
     {
         /*
          *                            For time control :
@@ -453,7 +447,7 @@ public:
 
         //*if time is up
         if(stopped)
-            return {0};
+            return 0;
 
 
         if (depthLimit <= 0)
@@ -499,20 +493,18 @@ public:
 
             //*search null move with reduced depthLimit to find beta cut offs
             //*here alpha = beta - 1
-            MinimaxReturn currReturnVal = this->negamax(depthLimit - 1 - 2, -beta, -(beta - 1), ply + 1, false);
-            int currScore = -currReturnVal.bestScore;
+            int currScore = -negamax(depthLimit - 1 - 2, -beta, -(beta - 1), ply + 1, false);
 
             //*restore board
             boardPosition = backUpCopyOfBoard;
 
             //*return 0 if time is up
             if (stopped)
-            {
-                return {0};
-            }
+                return 0;
+            
 
             if (currScore >= beta)
-                return {beta};
+                return beta;
         }
 
         // //*----------------------------------NULL MOVE PRUNING END-------------------------------------------------------------//
@@ -571,14 +563,12 @@ public:
              *back with a score less than or equal to alpha, and if this is going to happen, the elimination of the top end of the window results in more cutoffs.  Of course, if the premise
              *is wrong, the score comes back at alpha + 1 or higher, and the search  must be re-done with the wider window.
              */
-            MinimaxReturn currReturnedVal;
             int currScore;
 
             //*if the node is not PV node proved yet , then search with full alpha,beta bandwidth
             if (searchedMoveCount == 0)
             {
-                currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
-                currScore = -currReturnedVal.bestScore;
+                currScore = -negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
             }
             //*if principal variation node was found previously , then search the rest of nodes with narrower alpha, beta bound to try to prove that this move is bad,
             //* if it is indeed not a bad node, then research with full alpha,beta bandwidth
@@ -599,8 +589,7 @@ public:
                 if (searchedMoveCount >= FULL_DEPTH_MOVES && ply >= REDUCTION_DEPTH_LIMIT && moveCanBeReduced(move, inCheck))
                 {
                     // *search current move with reduced depth (and also reduced aloha-beta bandwidth):
-                    currReturnedVal = this->negamax(depthLimit - 2, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
-                    currScore = -currReturnedVal.bestScore;
+                    currScore = -negamax(depthLimit - 2, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
                 }
                 // *hack to ensure that full-depth search is done (making currScore = alpha + 1, so that the following if(){} block is entered and full PVS search is done )
                 else
@@ -613,14 +602,12 @@ public:
                 {
 
                     //*search with beta = alpha + 1
-                    currReturnedVal = this->negamax(depthLimit - 1, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
-                    currScore = -currReturnedVal.bestScore;
+                    currScore = -negamax(depthLimit - 1, -(alpha + 1), -alpha, ply + 1, isChildNodeFollowingPVLine);
 
                     //*if the narrow search finds that it is not a bad move that is , this move is better than the first found PV move, then research again with full alpha,beta bandwidth
                     if (currScore > alpha && currScore < beta)
                     {
-                        currReturnedVal = this->negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
-                        currScore = -currReturnedVal.bestScore;
+                        currScore = -negamax(depthLimit - 1, -beta, -alpha, ply + 1, isChildNodeFollowingPVLine);
                     }
                 }
             }
@@ -636,9 +623,8 @@ public:
 
             //*return 0 if time is up
             if (stopped)
-            {
-                return {0};
-            }
+                return 0;
+            
 
             //*add new nodeCoutns
             // nodeCount += currReturnedVal.nodeCount;
@@ -686,7 +672,7 @@ public:
                     Engine::KILLER_MOVES[0][ply] = move;
                 }
 
-                return {beta};
+                return beta;
             }
 
             //*increment searchedMoveCount
@@ -700,17 +686,17 @@ public:
             if (inCheck)
             {
                 //*Important : "- depthLimit" is needed to find the nearest checkmate , becuase if there are 2 checkmates at depth 3 and depth 7 , we need to return specifically the checkmate at depth 3 , and at depth 3 depthLimit is higher than at depth 7
-                return {-49000 - depthLimit};
+                return (-49000 - depthLimit);
             }
             //*stalemate
             else
             {
-                return {0};
+                return 0;
             }
         }
 
-        //*return best move
-        return {alpha};
+        //*return best score
+        return alpha;
     }
 
     void inline resetTablesOfSearch()
@@ -747,7 +733,7 @@ public:
         //*IMPORTANT: Dont forget to reset the tables, otherwise middle game performance will be so much dropped
         resetTablesOfSearch();
 
-        MinimaxReturn res = negamax(depth, -50000, 50000, 0, true);
+        int res = negamax(depth, -50000, 50000, 0, true);
 
         if (BEST_MOVE == Move::INVALID_MOVE)
         {
@@ -756,7 +742,7 @@ public:
         }
         else
         {
-            cout << "info score cp " << res.bestScore << " depth " << depth << " nodes " << nodeCount;
+            cout << "info score cp " << res << " depth " << depth << " nodes " << nodeCount;
 
             //*print Principal variation line
             cout << " pv ";
@@ -796,7 +782,7 @@ public:
             // Engine::resetTablesOfSearch();
 
             //*each first start position at each search follow PV line
-            MinimaxReturn res = negamax(currDepth, -50000, 50000, 0, true);
+            int res = negamax(currDepth, -50000, 50000, 0, true);
 
             if (stopped)
             {
@@ -815,7 +801,7 @@ public:
 
                 currDepthNodeCount = nodeCount - currDepthNodeCount;
 
-                cout << "info score cp " << res.bestScore << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - starttime);
+                cout << "info score cp " << res << " depth " << currDepth << " nodes " << currDepthNodeCount << " time " << (getTimeInMilliSeconds() - starttime);
 
                 //*
                 prevDepthSearchBestMove = BEST_MOVE;
