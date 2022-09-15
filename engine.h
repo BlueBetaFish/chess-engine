@@ -36,10 +36,34 @@ class Engine : public UCISearchInfo
     //*bestMove after a search
     Move BEST_MOVE;
     
-    //*Number of nodes searched
+    //*Number of nodes searched in a search
     long long nodeCount;
 
+    //*Killer move is a dangerous quiet move which kills opponent's most of the other moves  to be expanded (example link : https://rustic-chess.org/search/ordering/killers.html)
+    //*KILLER_MOVE[id][ply] ---> most of the engines store 2 killer moves for each ply for efficiency
+    Move KILLER_MOVES[2][MAX_DEPTH];
 
+    //*SCORE OF HISTORY MOVES : //*TODO: gotta comment properly later
+    //*HISTORY_MOVES[piece][square]
+    int HISTORY_MOVE_SCORE[12][64];
+
+
+    //*Principal variation table
+    /*
+    * For example : for depth 4 , PV_TABLE:
+    *
+    *    ply
+    *    |
+    *    |
+    *    V
+    *    0  ---> m4 m3 m2 m1
+    *    1  ---> m3 m2 m1
+    *    2  ---> m2 m1
+    *    3  ---> m1
+    */
+    //*Principal variation table : PV_TABLE[ply] = move list(principal vaiation line moves at ply )
+    //* PV_TABLE[0][depth] = best move of the player at depth after completing the search
+    MoveList PV_TABLE[MAX_DEPTH];
 
 
     //*-----------------------------------------------------------------------------------------------------------------------------------------------------------------*//
@@ -62,16 +86,7 @@ class Engine : public UCISearchInfo
     //*Most valuable victim , less valuable attacker score table for move ordering (stores the score of a move to order them from best to worst)
     static int MVV_LVA_MOVE_SCORE[12][12];
 
-    //*Killer move is a dangerous quiet move which kills opponent's most of the other moves  to be expanded (example link : https://rustic-chess.org/search/ordering/killers.html)
-    //*KILLER_MOVE[id][ply] ---> most of the engines store 2 killer moves for each ply for efficiency
-    static Move KILLER_MOVES[2][MAX_DEPTH];
 
-    //*SCORE OF HISTORY MOVES : //*TODO: gotta comment properly later
-    //*HISTORY_MOVES[piece][square]
-    static int HISTORY_MOVE_SCORE[12][64];
-
-    //*Principal variation table
-    static MoveList PV_TABLE[MAX_DEPTH];
 
 public:
 
@@ -79,8 +94,7 @@ public:
     Engine(string fen = START_POSITION_FEN)
     {
         this->boardPosition.initializeFromFenString(fen);
-        nodeCount = 0;
-        BEST_MOVE = Move::INVALID_MOVE;
+        resetTablesOfSearch();
     }
     
     //*initializes the boardposition from given fen string
@@ -296,10 +310,10 @@ public:
         if (isCurrNodeFollowingPVLine)
         {
             //*if the PV_LINE upto given ply was found
-            if (ply < Engine::PV_TABLE[0].size())
+            if (ply < PV_TABLE[0].size())
             {
                 //*if the move matches the PV move at the given ply
-                if (move == Engine::PV_TABLE[0][ply])
+                if (move == PV_TABLE[0][ply])
                 {
                     // //*TODO:Printing For debugging purpose:
                     // cout << "current PV move : ";
@@ -360,15 +374,15 @@ public:
         else
         {
             //*get score of 1st killer move, if exists
-            if (Engine::KILLER_MOVES[0][ply] == move)
+            if (KILLER_MOVES[0][ply] == move)
                 return 9000;
 
             //*get score of 2nd killer move, if exists
-            if (Engine::KILLER_MOVES[1][ply] == move)
+            if (KILLER_MOVES[1][ply] == move)
                 return 8000;
 
             //*get score of history move
-            return Engine::HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare];
+            return HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare];
         }
 
         //*for rest of the moves, return 0
@@ -846,7 +860,7 @@ public:
             {
                 //*if the PV move upto given ply was found previously then check if the current move
                 //*is equal to the PV move of the given ply level, if true, then the child node will follow PV line
-                if (ply < Engine::PV_TABLE[0].size() && Engine::PV_TABLE[0][ply] == move)
+                if (ply < PV_TABLE[0].size() && PV_TABLE[0][ply] == move)
                     isChildNodeFollowingPVLine = true;
                 else
                     isChildNodeFollowingPVLine = false;
@@ -954,7 +968,7 @@ public:
                 if (!move.captureFlag)
                 {
                     //*store history move score
-                    Engine::HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare] += depthLimit;
+                    HISTORY_MOVE_SCORE[move.pieceMoved][move.toSquare] += depthLimit;
                 }
 
                 maxScore = alpha = currScore;
@@ -964,17 +978,17 @@ public:
 
                 //*------------------------------------set PV move in PV_TABLE------------------------------------
                 //*reset pv line of current ply
-                Engine::PV_TABLE[ply].clearSize();
+                PV_TABLE[ply].clearSize();
 
                 //*store this move as the first move of the pv line
-                Engine::PV_TABLE[ply].push_back(move);
+                PV_TABLE[ply].push_back(move);
 
                 //*store the moves of the next ply as the next moves of this pv line
-                for (int i = 0; i < Engine::PV_TABLE[ply + 1].size(); i++)
-                    Engine::PV_TABLE[ply].push_back(Engine::PV_TABLE[ply + 1][i]);
+                for (int i = 0; i < PV_TABLE[ply + 1].size(); i++)
+                    PV_TABLE[ply].push_back(PV_TABLE[ply + 1][i]);
 
                 //*as in special positions like check, we increased depth and searched, so in that case PV Line becomes longer becuase we search for extra depth , so set the original depth
-                Engine::PV_TABLE[ply].setSize(oldDepthLimit);
+                PV_TABLE[ply].setSize(oldDepthLimit);
 
                 if (ply == 0)
                     BEST_MOVE = move; //*current move is the best move
@@ -987,8 +1001,8 @@ public:
                 if (!move.captureFlag)
                 {
                     //*store this move as killer move, since it caused the beta cut off , and also make the prev 1st killer move as 2nd killer move
-                    Engine::KILLER_MOVES[1][ply] = Engine::KILLER_MOVES[0][ply];
-                    Engine::KILLER_MOVES[0][ply] = move;
+                    KILLER_MOVES[1][ply] = KILLER_MOVES[0][ply];
+                    KILLER_MOVES[0][ply] = move;
                 }
 
                 return beta;
@@ -1027,24 +1041,24 @@ public:
         //*TODO:
         stopped = false;
 
-        //*reset KILLER_MOVE and HISTORY_MOVE_SCORE tables
+        //*reset KILLER_MOVE table
         for (int i = 0; i < 2; i++)
         {
             for (int j = 0; j < MAX_DEPTH; j++)
-                Engine::KILLER_MOVES[i][j] = Move::INVALID_MOVE;
+                KILLER_MOVES[i][j] = Move::INVALID_MOVE;
         }
 
         //*reset history move scores
         for (int i = 0; i < 12; i++)
         {
             for (int j = 0; j < 64; j++)
-                Engine::HISTORY_MOVE_SCORE[i][j] = 0;
+                HISTORY_MOVE_SCORE[i][j] = 0;
         }
 
         //*reset PV table
         for (int i = 0; i < MAX_DEPTH; i++)
         {
-            Engine::PV_TABLE[i].reset();
+            PV_TABLE[i].reset();
         }
     }
 
@@ -1070,11 +1084,11 @@ public:
             //*print Principal variation line
             cout << " pv ";
             //*TODO: print pv moves
-            for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
+            for (int i = 0; i < PV_TABLE[0].size(); i++)
             {
-                cout << Engine::PV_TABLE[0][i].getUCIMove();
+                cout << PV_TABLE[0][i].getUCIMove();
 
-                if (i != Engine::PV_TABLE[0].size() - 1)
+                if (i != PV_TABLE[0].size() - 1)
                     cout << " ";
             }
             cout << endl;
@@ -1161,11 +1175,11 @@ public:
                 //*print Principal variation line
                 cout << " pv ";
                 //*TODO: print pv moves
-                for (int i = 0; i < Engine::PV_TABLE[0].size(); i++)
+                for (int i = 0; i < PV_TABLE[0].size(); i++)
                 {
-                    cout << Engine::PV_TABLE[0][i].getUCIMove();
+                    cout << PV_TABLE[0][i].getUCIMove();
 
-                    if (i != Engine::PV_TABLE[0].size() - 1)
+                    if (i != PV_TABLE[0].size() - 1)
                         cout << " ";
                 }
                 cout << endl;
@@ -1424,27 +1438,8 @@ int Engine::MVV_LVA_MOVE_SCORE[12][12] =
 
 };
 
-//*KILLER_MOVE[id][ply] ---> most of the engines store 2 killer moves for each ply for efficiency
-Move Engine::KILLER_MOVES[2][MAX_DEPTH];
 
-//*HISTORY_MOVES[piece][square]
-int Engine::HISTORY_MOVE_SCORE[12][64];
 
-/*
-* For example : for depth 4 , PV_TABLE:
-*
-*    ply
-*    |
-*    |
-*    V
-*    0  ---> m4 m3 m2 m1
-*    1  ---> m3 m2 m1
-*    2  ---> m2 m1
-*    3  ---> m1
-*
-*
-*/
-//*Principal variation table : PV_TABLE[ply] = move list(principal vaiation line moves at ply )
-//* PV_TABLE[0][depth] = best move of the player at depth after completing the search
-MoveList Engine::PV_TABLE[MAX_DEPTH];
+
+
 
