@@ -23,7 +23,7 @@ void initializeTables()
 
 int main()
 {
-    cout << "\n\nHello earth\n\n\n";
+    // cout << "\n\nHello earth\n\n\n";
 
     //*---------------IMPORTANT----------------------------------------*//
     initializeTables();

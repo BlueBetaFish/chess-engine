@@ -311,6 +311,7 @@ public:
 
         // print this->engine info
         cout << "id name BlueBetaFish\n";
+        cout << "id author Sourashis\n";
         cout << "uciok\n";
 
         // main loop
