@@ -714,7 +714,7 @@ public:
     *                              ||
     *                              \/ 
     * 
-    *           NEGAMAX (ALPHA-BETA) SEARCH WITH PRINCIPAL VARATION:
+    *           NEGAMAX (ALPHA-BETA) SEARCH WITH PRINCIPAL VARATION SEARCH:
     *   ============================================================================
     *    _______________________________________________________________________________
     *   |   int alphaBeta(int depthLeft, int alpha, int beta)                           |
