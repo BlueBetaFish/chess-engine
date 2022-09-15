@@ -249,6 +249,7 @@ private:
             engine.movestogo = 1;
         }
 
+        engine.starttime = getTimeInMilliSeconds();
 
         // if time control is available
         if (engine.time != -1)
@@ -257,7 +258,6 @@ private:
             engine.timeset = 1;
 
             // set up timing
-            engine.starttime = getTimeInMilliSeconds();
             engine.time /= engine.movestogo;
             engine.time -= 50;
             engine.stoptime = engine.starttime + engine.time + engine.inc;
@@ -268,6 +268,13 @@ private:
             // set depth to 64 plies (takes ages to complete...)
             depth = 64;
 
+        /*
+        *   time : time limit for the search
+        *   start : start time in millisecond
+        *   stop : stop time in millisecond
+        *   depth : upto which depth the engine will search
+        *   timeset : flag to denote if the engine is searching for specific time limit or depth limit
+        */
         // print debug info
         printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
                engine.time, engine.starttime, engine.stoptime, depth, engine.timeset);
