@@ -38,6 +38,6 @@
         - `btime "BTIME_VALUE"` :  Searches the position assuming black has "BTIME_VALUE" milliseconds remaining
             - Example : Run the command `go wtime 180000`
                 - Searches the position assuming white has 180 seconds.
-                - <image src='README-FILES/goMovetime.png' width='500'>
+                - <image src='README-FILES/goWtime.png' width='500'>
 
 
