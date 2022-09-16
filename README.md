@@ -6,6 +6,16 @@
 - You can use this CLI program using UCI commands, or you can play against it using any UCI protocol supported chess GUI.
 - Approximate Elo : 1600
 
+
+## Tutorial
+- You can download the executable from `bin` directory, or you can compile the source code using `make` command.
+- You can use the CLI program using UCI commands.
+- You can also play against the engine using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here : http://www.playwitharena.de/
+- ![Arena Tutorial](https://user-images.githubusercontent.com/74865683/190640321-2c6e761d-9013-47d2-bff7-7f499fc42682.mp4)
+
+
+
+
 ## Supported UCI commands
 - ### *GUI to Engine*
     - ### `position [fen  | startpos ]  moves  ....`
