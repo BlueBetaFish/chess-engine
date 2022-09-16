@@ -11,8 +11,7 @@
 - You can download the executable from `bin` directory, or you can compile the source code using `make` command.
 - You can use the CLI program using UCI commands.
 - You can also play against the engine using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here : http://www.playwitharena.de/
-- ![Arena Tutorial](https://user-images.githubusercontent.com/74865683/190640321-2c6e761d-9013-47d2-bff7-7f499fc42682.mp4)
-
+- <image src='README-FILES/ArenaTutorial.gif'>
 
 
 
