@@ -276,8 +276,8 @@ private:
         *   timeset : flag to denote if the engine is searching for specific time limit or depth limit
         */
         // print debug info
-        printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-               engine.time, engine.starttime, engine.stoptime, depth, engine.timeset);
+        // printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+        //        engine.time, engine.starttime, engine.stoptime, depth, engine.timeset);
 
 
         //*error
