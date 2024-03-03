@@ -307,7 +307,7 @@ public:
         setbuf(stdout, NULL);
 
         // define user / GUI input buffer
-        char input[200];
+        char input[4000];
 
         // print this->engine info
         cout << "id name BlueBetaFish\n";

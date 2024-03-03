@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <unistd.h>
+#include<climits>
+#include<string.h>
 
 #ifdef WIN64
 #include <windows.h>

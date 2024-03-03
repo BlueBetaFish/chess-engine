@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp -o ../bin/bluebetafish_64bit_windows -Ofast -static-libgcc -static-libstdc++ -static
+	g++ main.cpp -o ../bin/bluebetafish_64bit_linux -Ofast -static-libgcc -static-libstdc++ -static
