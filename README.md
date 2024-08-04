@@ -2,16 +2,16 @@
 
 ## Overview 
 - Bluebetafish is a [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") chess engine written in C++. 
-- It is a command line program which can find best move for a given chess position by searching upto specific depth or by searching for specific amount of time.
+- It is a command line program which can find best move for a given chess position by searching up to specific depth or by searching for a specific amount of time.
 - You can use this CLI program using UCI commands, or you can play against it using any UCI protocol supported chess GUI.
 - Approximate Elo: 1700
 
 
 ## Tutorial
-- You can download and run the executable from `bin` directory, or you can compile the source code using `make` command.
+- You can download and run the executable from the `bin` directory, or you can compile the source code using `make` command.
 - You can use the engine via command line using UCI commands: [Each command is explained later]
     - `position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -`: will initialize the board with given position (input FEN string).
-    - `go movetime 5000`: engine finds best move for 5000 millisecond.
+    - `go movetime 5000`: engine finds the best move for 5000 milliseconds.
     - **Output** (`bestmove e2a6`): within 5 seconds, the engine could search upto depth 8 and best move is `e2a6`.  
     <image src='README-FILES/cmdTutorial.png' width=700px>
 
@@ -19,7 +19,7 @@
 
     <image src='README-FILES/chessWebAppCheckmate.gif'>
 
-- You can play against the engine also using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here : http://www.playwitharena.de/
+- You can play against the engine also using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here: http://www.playwitharena.de/
 
     <image src='README-FILES/ArenaTutorial.gif'>
 
@@ -31,7 +31,7 @@
     - Sets up the position described in FEN string on the internal board and
     plays the moves on the internal chess board.
     - Pass `startpos` as argument if you want to initialize the board to starting position.
-    - `moves` is optional argument. If it is not passed, no move is played after the given fen/startpos.
+    - `moves` is an optional argument. If it is not passed, no move is played after the given fen/startpos.
     - Examples: 
         - `position startpos`: initializes the board with starting position
 
