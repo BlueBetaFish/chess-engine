@@ -4,7 +4,7 @@
 - Bluebetafish is a [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") chess engine written in C++. 
 - It is a command line program which can find best move for a given chess position by searching up to specific depth or by searching for a specific amount of time.
 - You can use this CLI program using UCI commands, or you can play against it using any UCI protocol supported chess GUI.
-- Approximate Elo: 1700
+- Approximate Elo: 1900
 
 
 ## Tutorial
