@@ -70,10 +70,13 @@ Download and run the executable from the bin directory, or compile the source co
 
 
 
-### 2. Play against the engine using my web app: [Github](https://github.com/sourashis59/chess-webapp)
+### 2. Play against the engine using GUI apps:
+- Use this web application: [Github](https://github.com/sourashis59/chess-webapp)
 
-<image src='README-FILES/chessWebAppCheckmate.gif'>
-https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
+    https://github.com/user-attachments/assets/6c72ecc0-6384-47b6-9ab7-aac6c766cd99
+
+
+
 - You can play against the engine also using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here: http://www.playwitharena.de/
 
     <image src='README-FILES/ArenaTutorial.gif'>
