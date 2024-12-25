@@ -79,7 +79,11 @@ Download and run the executable from the bin directory, or compile the source co
 
 - **UCI-Compatible GUIs:** Use any GUI that supports the UCI protocol, such as [Arena](http://www.playwitharena.de/) (for Windows), [SCID](https://scid.sourceforge.net/) (for both Windows and Linux), etc.
 
-    <image src='README-FILES/ArenaTutorial.gif'>
+
+    https://github.com/user-attachments/assets/42794bad-be64-4ad1-afa6-7a08f704ffd7
+
+
+    <!-- <image src='README-FILES/ArenaTutorial.gif'> -->
 
 ----
 
