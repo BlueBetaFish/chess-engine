@@ -1,24 +1,79 @@
-# Bluebetafish (Chess engine in C++)
+# Bluebetafish - UCI Chess engine in C++
 
-## Overview 
+Bluebetafish is a chess engine written in C++, with an approximate rating of 1900. It evaluates chess positions, finds the best moves, and supports integration with [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") (Universal Chess Intrface Protocol) compatible GUIs.
+
+## Try it:
+- https://chess-webapp-production-79f7.up.railway.app/index.html
+- If first link does not work then try this: https://chess-webapp-1.onrender.com/index.html.
+
+<!-- ## Overview 
 - Bluebetafish is a [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") chess engine written in C++. 
 - It is a command line program which can find best move for a given chess position by searching up to specific depth or by searching for a specific amount of time.
 - You can use this CLI program using UCI commands, or you can play against it using any UCI protocol supported chess GUI.
-- Approximate Elo: 1900
+- Approximate Elo: 1900 -->
 
 
-## Tutorial
-- You can download and run the executable from the `bin` directory, or you can compile the source code using `make` command.
-- You can use the engine via command line using UCI commands: [Each command is explained later]
-    - `position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -`: will initialize the board with given position (input FEN string).
-    - `go movetime 5000`: engine finds the best move for 5000 milliseconds.
-    - **Output** (`bestmove e2a6`): within 5 seconds, the engine could search upto depth 8 and best move is `e2a6`.  
-    <image src='README-FILES/cmdTutorial.png' width=700px>
+## Getting Started
+Download and run the executable from the bin directory, or compile the source code using the `make` command. Or download any UCI protocol supported GUI and load the engine.
+### 1. Use the engine via command line using UCI commands: [Each command is explained later]
+- `position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -`: will initialize the board with given position (input FEN string).
+    ```
+    $ ./bluebetafish_64bit_linux
 
-- Or, play against the engine using my web app: [Github](https://github.com/sourashis59/chess-webapp)
+    id name BlueBetaFish
+    uciok
+    position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -
+    Piece Board: 
+    +---+---+---+---+---+---+---+---+
+    | r |   |   |   | k |   |   | r |   8
+    +---+---+---+---+---+---+---+---+
+    | p |   | p | p | q | p | b |   |   7
+    +---+---+---+---+---+---+---+---+
+    | b | n |   |   | p | n | p |   |   6
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | P | N |   |   |   |   5
+    +---+---+---+---+---+---+---+---+
+    |   | p |   |   | P |   |   |   |   4
+    +---+---+---+---+---+---+---+---+
+    |   |   | N |   |   | Q |   | p |   3
+    +---+---+---+---+---+---+---+---+
+    | P | P | P | B | B | P | P | P |   2
+    +---+---+---+---+---+---+---+---+
+    | R |   |   |   | K |   |   | R |   1
+    +---+---+---+---+---+---+---+---+---+---+
+    a   b   c   d   e   f   g   h   --------> File
 
-    <image src='README-FILES/chessWebAppCheckmate.gif'>
+    CurrentPlayer : WHITE ,  EnPassant square : -1 ,  Castling Rights = KQkq
+    ```
 
+- `go movetime 5000`: engine finds the best move for 5000 milliseconds.
+    ```
+    go movetime 5000
+    
+    info score cp 30 depth 1 nodes 1073 time 2 pv e2a6
+    info score cp 30 depth 2 nodes 1528 time 6 pv e2a6 b4c3
+    info score cp 15 depth 3 nodes 5730 time 9 pv e2a6 b4c3 b2c3
+    info score cp 15 depth 4 nodes 23335 time 27 pv e2a6 b4c3 b2c3 e6d5
+    info score cp 5 depth 5 nodes 85732 time 88 pv e2a6 b4c3 d2c3 e6d5 e4d5
+    info score cp 0 depth 6 nodes 209717 time 254 pv e2a6 e6d5 c3d5 b6d5 e4d5 e7e5
+    info score cp -20 depth 7 nodes 505761 time 568 pv e2a6 e6d5 c3d5 b6d5 a6b7 a8b8 e4d5
+    info score cp -20 depth 8 nodes 1203547 time 1286 pv e2a6 e6d5 c3d5 b6d5 a6b7 a8b8 e4d5 b8b7
+    info score cp -60 depth 9 nodes 4158122 time 4238 pv e2a6 e6d5 e5g4 f6g4 c3d5 b6d5 f3g4 h3g2 g4g2
+    bestmove e2a6
+
+    Total Nodes of iterative deepening : 6262784
+    ```
+
+- **Output** (`bestmove e2a6`): within 5 seconds, the engine could search upto depth 9 and best move is `e2a6`.  
+<!-- <image src='README-FILES/cmdTutorial.png' width=700px> -->
+
+
+
+
+### 2. Play against the engine using my web app: [Github](https://github.com/sourashis59/chess-webapp)
+
+<image src='README-FILES/chessWebAppCheckmate.gif'>
+https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
 - You can play against the engine also using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here: http://www.playwitharena.de/
 
     <image src='README-FILES/ArenaTutorial.gif'>
