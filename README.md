@@ -19,6 +19,10 @@
 
     <image src='README-FILES/chessWebAppCheckmate.gif'>
 
+    https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
+
+
+
 - You can play against the engine also using any UCI protocol supported GUI. Arena is a free chess GUI, which you can download from here: http://www.playwitharena.de/
 
     <image src='README-FILES/ArenaTutorial.gif'>
