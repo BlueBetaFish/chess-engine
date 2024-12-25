@@ -1,6 +1,6 @@
 # Bluebetafish - UCI Chess engine in C++
 
-Bluebetafish is a chess engine written in C++, with an approximate rating of 1900. It evaluates chess positions, finds the best moves, and supports integration with [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") (Universal Chess Intrface Protocol) compatible GUIs.
+Bluebetafish is a chess engine written in C++, with an approximate rating of 1900. It evaluates chess positions, finds the best moves, and supports integration with [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") (Universal Chess Interface Protocol) compatible GUIs.
 
 ## Try it:
 - https://chess-webapp-production-79f7.up.railway.app/index.html
