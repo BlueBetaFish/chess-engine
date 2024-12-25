@@ -73,7 +73,9 @@ Download and run the executable from the bin directory, or compile the source co
 ### 2. Play against the engine using GUI apps:
 - **Web Application:** Play against the engine online using this [Github](https://github.com/sourashis59/chess-webapp)
 
-    https://github.com/user-attachments/assets/6c72ecc0-6384-47b6-9ab7-aac6c766cd99
+
+    https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
+
 
 
 
