@@ -7,6 +7,7 @@ Bluebetafish is a chess engine with an approximate rating of 1900. It evaluates 
 ## Try it:
 - https://chess-webapp-production-79f7.up.railway.app/index.html
 - If first link does not work then try this: https://chess-webapp-1.onrender.com/index.html.
+    - (The website takes ~1 minute to load for the first time, due to the hosting platform issue. Please wait for 1 minute while loading for the first time, then it will work fine) 
 
 <!-- ## Overview 
 - Bluebetafish is a [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface "Communication protocol between GUI and engine") chess engine written in C++. 
@@ -73,14 +74,6 @@ Download and run the executable from the bin directory, or compile the source co
 
 
 ### 2. Play against the engine using GUI apps:
-- **Web Application:** Play against the engine online using this [Github](https://github.com/sourashis59/chess-webapp)
-
-
-    https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
-
-
-
-
 - **UCI-Compatible GUIs:** Use any GUI that supports the UCI protocol, such as [Arena](http://www.playwitharena.de/) (for Windows), [SCID](https://scid.sourceforge.net/) (for both Windows and Linux), etc.
 
 
@@ -88,6 +81,13 @@ Download and run the executable from the bin directory, or compile the source co
 
 
     <!-- <image src='README-FILES/ArenaTutorial.gif'> -->
+
+- **Web Application:** Play against the engine online using this [Github](https://github.com/sourashis59/chess-webapp)
+
+
+    https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
+
+
 
 ----
 
