@@ -81,12 +81,12 @@ Download and run the executable from the bin directory, or compile the source co
 
 
     <!-- <image src='README-FILES/ArenaTutorial.gif'> -->
-
+<!--
 - **Web Application:** Play against the engine online using this [Github](https://github.com/sourashis59/chess-webapp)
 
 
     https://github.com/user-attachments/assets/a41adc06-c725-4a9c-826b-95513dda6401
-
+-->
 
 
 ----
